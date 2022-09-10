@@ -1,0 +1,27 @@
+<html>
+    <head>
+        <title>Trading Game Width Phase</title>
+        <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"
+            integrity="sha384-fKnu0iswBIqkjxrhQCTZ7qlLHOFEgNkRmK2vaO/LbTZSXdJfAu6ewRBdwHPhBo/H"
+            crossorigin="anonymous"></script>
+    </head>
+</html>
+
+<p id="clock"></p>
+<br> <br>
+Quantity to trade: <p id="qty_desc"></p> <br>
+Current best bid: <p id="best_width"></p> (<p id="unit"></p>) - <p id="best_name"></p>
+
+<script>
+    const socket = io();
+
+    socket.on("connect", () => {
+        console.log("socket connected))");
+    });
+
+    socket.on("tick", (msg) => {
+        let d = JSON.parse(msg);
+        let element = document.getElementById("clock");
+        element.innerHTML = d["dt"]
+    });
+</script>
