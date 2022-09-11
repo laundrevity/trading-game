@@ -18,8 +18,14 @@ async def tick():
         data = {
             'dt': str(datetime.datetime.now())[:-7]
         }
+
+        if gm.current_width_game is not None:
+            await gm.current_width_game.handle_tick()
+            data['width_time_left'] = gm.current_width_game.time_left
+
         await sio.emit('tick', json.dumps(data), broadcast=True)
         await asyncio.sleep(1)
+
 
 @quart_app.before_serving
 async def initialize():
@@ -30,6 +36,7 @@ async def initialize():
 @quart_app.route('/')
 async def index():
     return await render_template('index.html')
+
 
 @quart_app.route('/width')
 async def width():
@@ -45,7 +52,7 @@ async def market():
 
 @sio.on('connect')
 async def connect(sid, environ):
-    print(f"@sio.on(connect): {sid=}, {environ=}")
+    # print(f"@sio.on(connect): {sid=}, {environ=}")
     # add to the list of current participants
     if sid not in gm.players:
         gm.register_player(sid)

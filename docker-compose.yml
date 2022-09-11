@@ -1,0 +1,12 @@
+version: '3.9'
+services:
+  tg:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./:/app
+    ports:
+      - "1337:1337"
+      - "80:5000"
+      - "2323:2323" 

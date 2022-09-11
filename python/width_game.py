@@ -17,6 +17,8 @@ class WidthGame:
         self.state = WidthGameState.INITIAL
         self.best_width = None
         self.best_player = None
+        self.time_left = 120
+        self.seconds_per_update = 30
     
     async def update(self, width: float, player: str):
         print(f"WidthGame.update, {width=}, {player=}")
@@ -31,3 +33,11 @@ class WidthGame:
                 "player": player
             }
             await self.sio.emit("best_width_update", json.dumps(payload), broadcast=True)
+            self.time_left = max(self.time_left, self.seconds_per_update)
+
+    async def handle_tick(self):
+        if self.time_left == 1:
+            self.state = WidthGame.OVER
+        else:
+            self.time_left -= 1
+        
