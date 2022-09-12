@@ -86,12 +86,13 @@
                 let td = document.createElement('td');
                 td.innerHTML = value;
 
-                td.onClick = (() => {
+                td.onclick = (() => {
                     handle_click(row, column);
                 });
 
                 td.oncontextmenu = (() => {
                     handle_right_click(row, column);
+                    return false;
                 });
 
                 tbody.appendChild(td);

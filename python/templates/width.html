@@ -82,7 +82,12 @@ Current minimum width: <p id="best_width"></p> - <p id="best_name"></p>
 
     socket.on("advance_to_trading_open", (msg) => {
         console.log("advance_to_trading_open");
-        window.location.href = "{{ url_for('market') }}"
+        let d = JSON.parse(msg);
+        if (d["initial_mm"] === socket.io.engine.id) {
+            window.location.href = "{{ url_for('market') }}";
+        } else {
+            window.location.href = "{{ url_for('open_route') }}"
+        }
     });
 
     function handle_width_update() {
@@ -101,11 +106,6 @@ Current minimum width: <p id="best_width"></p> - <p id="best_name"></p>
             "ask": parseFloat(bid) + parseFloat(width_holder.innerHTML)
         };
         socket.emit("handle_bid_submission", JSON.stringify(update));
-    }
-
-    function advance_to_trading_open() {
-        console.log("advance_to_trading_open");
-        window.location.href = "{{ url_for('market') }}";
     }
 
 </script>

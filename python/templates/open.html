@@ -1,0 +1,54 @@
+<html>
+<head>    
+    <title>Trading Game Market Open</title>
+    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"
+        integrity="sha384-fKnu0iswBIqkjxrhQCTZ7qlLHOFEgNkRmK2vaO/LbTZSXdJfAu6ewRBdwHPhBo/H"
+        crossorigin="anonymous"></script>
+</head>        
+<body>
+<p id="clock"></p>
+
+<br><br><br>
+
+<form action="" method="" class="side-form">
+    <div class="side-form">
+        <input type="button" onclick="handle_buy_side()" value="buy">
+    </div>
+    <div class="side-form">
+        <input type="button" onclick="handle_sell_side()" value="sell">
+    </div>
+</form>
+
+<script>
+    const socket = io();
+
+    socket.on("tick", (msg) => {
+        console.log("session id: ", socket.io.engine.id);
+        let d = JSON.parse(msg);
+        let element = document.getElementById('clock');
+        element.innerHTML = d['dt'];
+    });
+
+    socket.on("advance_to_market", (msg) => {
+        window.location.href = "{{ url_for('market') }}";
+    });
+
+    function handle_buy_side() {
+        let update = {
+            "side" : "BUY",
+            "browser_id": socket.io.engine.id
+        };
+        socket.emit("handle_open_side", JSON.stringify(update));
+    }
+
+    function handle_sell_side() {
+        let update = {
+            "side" : "SELL",
+            "browser_id": socket.io.engine.id
+        };
+        socket.emit("handle_open_side", JSON.stringify(update));
+    }
+
+</script>
+</body>
+</html>
