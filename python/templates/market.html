@@ -1,0 +1,119 @@
+<html>
+<head>
+    <title>Trading Game Market Phase</title>
+    <style>
+        table {
+            font-family: Arial, Helvetica, sans-serif;
+            border-collapse: collapse;
+        }
+
+        td,
+        th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        tr:hover {
+            background-color: #f2f2f2;
+        }
+
+        th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #00d9ff;
+            color: rgb(0, 0, 0);
+        }
+    </style>
+    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"
+        integrity="sha384-fKnu0iswBIqkjxrhQCTZ7qlLHOFEgNkRmK2vaO/LbTZSXdJfAu6ewRBdwHPhBo/H"
+        crossorigin="anonymous"></script>
+</head>
+<body>
+
+<p id="clock"></p>
+<br><br>
+<div id="ladder">
+</div>
+
+<script>
+    const socket = io();
+
+    socket.on("tick", (msg) => {
+        console.log("tick, session id:", socket.io.engine.id);
+        let data = JSON.parse(msg);
+        let clock = document.getElementById("clock");
+        clock.innerHTML = data["dt"];
+    });
+
+    socket.on("book", (msg) => {
+        console.log("book, msg=", msg);
+        let data = JSON.parse(msg);
+        let rows = data['rows'];
+        let columns = data['columns'];
+        let grid = data['grid'];
+
+        let table = document.createElement('table');
+        let thead = document.createElement('thead');
+        let tbody = document.createElement('tbody');
+        table.appendChild(thead);
+        table.appendChild(tbody);
+
+        let hr = document.createElement('tr');
+        let hr1 = document.createElement('th');
+        let hr2 = document.createElement('th');
+        let hr3 = document.createElement('th');
+        let hr4 = document.createElement('th');
+        let hr5 = document.createElement('th');
+        
+        hr1.innerHTML = 'your bid qty';
+        hr2.innerHTML = 'market bid qty';
+        hr3.innerHTML = 'price';
+        hr4.innerHTML = 'market ask qty';
+        hr5.innerHTML = 'your ask qty';
+        
+        hr.append(hr1);
+        hr.append(hr2);
+        hr.append(hr3);
+        hr.append(hr4);
+        hr.append(hr5);
+        thead.append(hr);
+
+        for (const row of rows) {
+            let tr = document.createElement('tr');
+            console.log("rending row=", row);
+            for (const [column, value] of Object.entries(grid[row])) {
+                let td = document.createElement('td');
+                td.innerHTML = value;
+
+                td.onClick = (() => {
+                    handle_click(row, column);
+                });
+
+                td.oncontextmenu = (() => {
+                    handle_right_click(row, column);
+                });
+
+                tbody.appendChild(td);
+            }
+            tbody.appendChild(tr);
+        }
+
+        let ladder = document.getElementById('ladder');
+        ladder.removeChild(ladder.firstChild);
+        ladder.appendChild(table);
+    });
+
+    function handle_click(row, column) {
+        console.log("handle_click, row=", row, ", column=", column);
+    }
+
+    function handle_right_click(row, column) {
+        console.log("handle_right_click, row=", row, ", column=", column);
+    }
+    
+
+</script>
+
+</body>
+</html>

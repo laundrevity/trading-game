@@ -7,7 +7,7 @@
         crossorigin="anonymous"></script>
 </head>
 
-</html>
+<body>
 
 <p id="clock"></p>
 <br> <br> <br>
@@ -51,7 +51,7 @@ Current minimum width: <p id="best_width"></p> - <p id="best_name"></p>
         console.log("session id: ", socket.io.engine.id);
         let d = JSON.parse(msg);
         let element = document.getElementById("clock");
-        element.innerHTML = d["dt"]
+        element.innerHTML = d["dt"];
 
         if ("width_time_left" in d) {
             let width_ele = document.getElementById("time_left");
@@ -109,3 +109,5 @@ Current minimum width: <p id="best_width"></p> - <p id="best_name"></p>
     }
 
 </script>
+</body>
+</html>
