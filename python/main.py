@@ -20,7 +20,7 @@ async def tick():
         }
 
         if gm.current_width_game is not None:
-            await gm.current_width_game.handle_tick()
+            await gm.current_width_game.handle_tick(gm.browser_ids)
             data['width_time_left'] = gm.current_width_game.time_left
 
         await sio.emit('tick', json.dumps(data), broadcast=True)
@@ -44,7 +44,7 @@ async def width():
         # start a new active width game (here can pass the value desc)
         gm.initialize_width_game()
     # here is where the opening width is established, and initial bid/ask is established
-    return await render_template('width.html')
+    return await render_template('width.html', foo="foo")
 
 @quart_app.route('/market')
 async def market():
@@ -56,6 +56,12 @@ async def connect(sid, environ):
     # add to the list of current participants
     if sid not in gm.players:
         gm.register_player(sid)
+
+@sio.on('register_browser_connection')
+async def register_browser_connection(sid, msg):
+    print(f"register_browser_connection with {sid=}, {msg=}", flush=True)
+    j = json.loads(msg)
+    gm.browser_ids[sid] = j['browser_session_id']
 
 @sio.event
 async def handle_width_update(sid, msg):
@@ -71,3 +77,14 @@ async def handle_width_update(sid, msg):
         )
     else:
         print(f"gm.current_width_game is None", flush=True)
+
+@sio.event
+async def handle_bid_submission(sid, msg):
+    print(f"handle_bid_submission for {msg=} from {sid=}", flush=True)
+    data = json.loads(msg)
+    payload = {
+        'initial_bid': data['bid'],
+        'initial_ask': data['ask'],
+        'initial_mm': gm.browser_ids[sid]
+    }
+    await sio.emit("advance_to_trading_open", json.dumps(payload), broadcast=True)

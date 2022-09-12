@@ -13,7 +13,9 @@
 <br> <br> <br>
 Time remaining: <p id="time_left"></p> <br>
 Quantity to trade: <p id="qty_desc">number of birds / number of people</p> <br>
-Current best bid: <p id="best_width"></p> - <p id="best_name"></p>
+Current minimum width: <p id="best_width"></p> - <p id="best_name"></p>
+
+<div>{{ foo }}</div>
 
 <form action="" method="" class="width-form">
     <div class="width-form">
@@ -25,14 +27,28 @@ Current best bid: <p id="best_width"></p> - <p id="best_name"></p>
     </div>
 </form>
 
+<div id="initial-submission" style="display: none;">
+    <div class="bid-form">
+        <label for="bid">bid: </label>
+        <input type="text" name="bid" id="bid-input" required>
+    </div>
+    <div class="bid-form">
+        <input type="button" onclick="handle_bid_submission()" value="send">
+    </div>
+</div>
+
 <script>
     const socket = io();
 
     socket.on("connect", () => {
         console.log("socket connected))");
+        console.log("session id: ", socket.io.engine.id);
+        let connection = {"browser_session_id": socket.io.engine.id};
+        socket.emit("register_browser_connection", JSON.stringify(connection));
     });
 
     socket.on("tick", (msg) => {
+        console.log("session id: ", socket.io.engine.id);
         let d = JSON.parse(msg);
         let element = document.getElementById("clock");
         element.innerHTML = d["dt"]
@@ -52,11 +68,44 @@ Current best bid: <p id="best_width"></p> - <p id="best_name"></p>
         name_holder.innerHTML = d["player"];
     });
 
+    socket.on("end_game", (msg) => {
+        console.log("end game, msg=", msg);
+        let d = JSON.parse(msg);
+        if (d["winner_browser_id"] === socket.io.engine.id) {
+            console.log("CONGRATULATIONS, YOU ARE THE WINNER!");
+            let element = document.getElementById("initial-submission");
+            element.style.display = 'block';
+        } else {
+            console.log("sucks to suck, you lost");
+        }
+    });
+
+    socket.on("advance_to_trading_open", (msg) => {
+        console.log("advance_to_trading_open");
+        window.location.href = "{{ url_for('market') }}"
+    });
+
     function handle_width_update() {
         console.log("handle_width_update");
         let w = document.getElementById("width-input").value;
         let update = { "width": w };
         socket.emit("handle_width_update", JSON.stringify(update));
+    }
+
+    function handle_bid_submission() {
+        console.log("handle_bid_submission");
+        let bid = document.getElementById("bid-input").value;
+        let width_holder = document.getElementById("best_width");
+        let update = {
+            "bid": parseFloat(bid), 
+            "ask": parseFloat(bid) + parseFloat(width_holder.innerHTML)
+        };
+        socket.emit("handle_bid_submission", JSON.stringify(update));
+    }
+
+    function advance_to_trading_open() {
+        console.log("advance_to_trading_open");
+        window.location.href = "{{ url_for('market') }}";
     }
 
 </script>

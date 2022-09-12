@@ -13,6 +13,7 @@ class GameManager:
         self.sio = sio
         self.players = []
         self.current_width_game = None
+        self.browser_ids = {}
     
     def register_player(self, player):
         if player not in self.players:
