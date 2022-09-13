@@ -44,7 +44,7 @@ async def initialize():
 @quart_app.route('/')
 @login_required
 async def index():
-    return await render_template('index.html')
+    return await render_template('index.html', user=current_user.auth_id)
 
 
 @quart_app.route('/width')
@@ -54,7 +54,7 @@ async def width():
         # start a new active width game (here can pass the value desc)
         gm.initialize_width_game()
     # here is where the opening width is established, and initial bid/ask is established
-    return await render_template('width.html', foo="foo")
+    return await render_template('width.html', user=current_user.auth_id)
 
 
 @quart_app.route('/market')
@@ -81,6 +81,8 @@ async def handle_login():
     if creds in gm.credentials:
         print(f"Login successful! for user={creds[0]}")
         login_user(AuthUser(creds[0]))
+        if creds[0] not in gm.players:
+            gm.register_player(creds[0])
         return jsonify({'success': 'TRUE'})
     else:
         print(f"Login failed with {creds=}")
@@ -89,33 +91,23 @@ async def handle_login():
 
 @sio.on('connect')
 async def connect(sid, environ):
-    print(f"@sio.on(connect): {sid=}, {environ=}")
-    # add to the list of current participants
-    if sid not in gm.players:
-        gm.register_player(sid)
-
-
-@sio.on('register_browser_connection')
-async def register_browser_connection(sid, msg):
-    print(f"register_browser_connection with {sid=}, {msg=}", flush=True)
-    j = json.loads(msg)
-    gm.browser_ids[sid] = j['browser_session_id']
+    pass
 
 
 @sio.event
 async def handle_width_update(sid, msg):
-    print(f"handle_width_update for {msg=} from {sid=}", flush=True)
     data = json.loads(msg)
-    if sid not in gm.players:
-        gm.register_player(sid)
+    if 'user' not in data or data['user'] not in gm.players:
+        raise Exception(f"user not in {data=} or user not in {gm.players=}")
+    
 
     if gm.current_width_game is not None:
         await gm.current_width_game.update(
             float(data['width']),
-            sid
+            data['user']
         )
     else:
-        print(f"gm.current_width_game is None", flush=True)
+        print(f"Not updating width because gm.current_width_game is none", flush=True)
 
 
 @sio.event
