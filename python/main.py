@@ -99,11 +99,12 @@ async def handle_bid_submission(sid, msg):
         'initial_mm': gm.browser_ids[sid]
     }
     gm.initialize_market_game(sid, data['bid'], data['ask'])
-    # redirect to trading open
+    # redirect to trading open (all but MM)
     await sio.emit("advance_to_trading_open", json.dumps(payload), broadcast=True)
     # wait a second for folks to get redirected
     await asyncio.sleep(1)
-    # broadcast the initial book
+    # broadcast the initial book and prices
+    await sio.emit("initial_prices", json.dumps(payload), broadcast=True)
     await sio.emit("book", gm.get_book_json(), broadcast=True)
 
 
