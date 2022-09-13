@@ -1,6 +1,10 @@
-from quart import Quart, render_template, url_for
+from quart import Quart, render_template, url_for, request, redirect, jsonify
 from game_manager import GameManager
 from socket_manager import UnixSocketManager
+from quart_auth import (
+    AuthUser, AuthManager, current_user, login_required, login_user, logout_user
+)
+from utils import load_credentials
 import socketio
 import asyncio
 import datetime
@@ -8,11 +12,12 @@ import json
 
 
 quart_app = Quart(__name__)
+quart_app.secret_key = 'superdupersecret'
+AuthManager(quart_app)
 sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins='*')
 app = socketio.ASGIApp(sio, quart_app)
 usm = UnixSocketManager(sio)
 gm = GameManager(sio)
-
 
 async def tick():
     while True:
@@ -32,14 +37,18 @@ async def tick():
 async def initialize():
     loop = asyncio.get_event_loop()
     loop.create_task(tick())
+    gm.credentials = load_credentials()
+    print(f"loaded creds: {gm.credentials}")
 
 
 @quart_app.route('/')
+@login_required
 async def index():
     return await render_template('index.html')
 
 
 @quart_app.route('/width')
+@login_required
 async def width():
     if gm.current_width_game is None:
         # start a new active width game (here can pass the value desc)
@@ -49,18 +58,38 @@ async def width():
 
 
 @quart_app.route('/market')
+@login_required
 async def market():
     return await render_template('market.html')
 
 
 @quart_app.route('/open')
+@login_required
 async def open_route():
     return await render_template('open.html')
 
 
+@quart_app.route('/login')
+async def login():
+    return await render_template('login.html')
+
+
+@quart_app.route('/handle_login', methods=['POST'])
+async def handle_login():
+    body = await request.get_json()
+    creds = (body['username'], body['password'])
+    if creds in gm.credentials:
+        print(f"Login successful! for user={creds[0]}")
+        login_user(AuthUser(creds[0]))
+        return jsonify({'success': 'TRUE'})
+    else:
+        print(f"Login failed with {creds=}")
+        return jsonify({'success': 'FALSE'})
+
+
 @sio.on('connect')
 async def connect(sid, environ):
-    # print(f"@sio.on(connect): {sid=}, {environ=}")
+    print(f"@sio.on(connect): {sid=}, {environ=}")
     # add to the list of current participants
     if sid not in gm.players:
         gm.register_player(sid)

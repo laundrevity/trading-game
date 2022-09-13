@@ -1,0 +1,52 @@
+<html>
+<head>
+    <title>Trading Game Login</title>
+    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"
+        integrity="sha384-fKnu0iswBIqkjxrhQCTZ7qlLHOFEgNkRmK2vaO/LbTZSXdJfAu6ewRBdwHPhBo/H"
+        crossorigin="anonymous"></script>
+</head>
+<body>
+
+<form action="" method="" class="login-form">
+    <div>
+        <label for="username">username:</label>
+        <input type="text" name="username" id="username" required>
+    </div>
+    <div>
+        <label for="password">password:</label>
+        <input type="password" name="password" id="password" required>
+    </div>
+    <div>
+        <input type="button" onclick="handle_login()" value="login">
+    </div>
+</form>
+<script>
+
+function handle_login() {
+    let user_ele = document.getElementById('username');
+    let password_ele = document.getElementById('password');
+    let credentials = {
+        username: user_ele.value,
+        password: password_ele.value
+    };
+    fetch('/handle_login', {
+        method: 'POST',
+        redirect: 'follow',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(credentials)
+    })
+    .then((response) => response.json())
+    .then((data) => {
+        if (data['success'] === 'TRUE') {
+            window.location.href = "{{url_for('index')}}";
+        } else {
+            window.alert('incorrect username or password');
+        }
+    });
+}
+
+</script>
+</body>
+</html>

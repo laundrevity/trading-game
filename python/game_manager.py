@@ -17,6 +17,7 @@ class GameManager:
         self.current_width_game = None
         self.current_market_game = None
         self.browser_ids = {}
+        self.credentials = []
     
     def register_player(self, player):
         if player not in self.players:
