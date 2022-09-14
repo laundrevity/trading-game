@@ -26,7 +26,7 @@ async def tick():
         }
 
         if gm.current_width_game is not None:
-            await gm.current_width_game.handle_tick(gm.browser_ids)
+            await gm.current_width_game.handle_tick()
             data['width_time_left'] = gm.current_width_game.time_left
 
         await sio.emit('tick', json.dumps(data), broadcast=True)
@@ -117,9 +117,9 @@ async def handle_bid_submission(sid, msg):
     payload = {
         'initial_bid': data['bid'],
         'initial_ask': data['ask'],
-        'initial_mm': gm.browser_ids[sid]
+        'initial_mm': data['user']
     }
-    gm.initialize_market_game(sid, data['bid'], data['ask'])
+    gm.initialize_market_game(data['user'], data['bid'], data['ask'])
     # redirect to trading open (all but MM)
     await sio.emit("advance_to_trading_open", json.dumps(payload), broadcast=True)
     # wait a second for folks to get redirected

@@ -16,8 +16,6 @@ Time remaining: <p id="time_left"></p> <br>
 Quantity to trade: <p id="qty_desc">number of birds / number of people</p> <br>
 Current minimum width: <p id="best_width"></p> - <p id="best_name"></p>
 
-<div>{{ foo }}</div>
-
 <form action="" method="" class="width-form">
     <div class="width-form">
         <label for="px">width: </label>
@@ -72,7 +70,8 @@ Current minimum width: <p id="best_width"></p> - <p id="best_name"></p>
     socket.on("end_game", (msg) => {
         console.log("end game, msg=", msg);
         let d = JSON.parse(msg);
-        if (d["winner_browser_id"] === socket.io.engine.id) {
+        let user_name = document.getElementById("user").innerHTML;
+        if (d["winner_user"] === user_name) {
             console.log("CONGRATULATIONS, YOU ARE THE WINNER!");
             let element = document.getElementById("initial-submission");
             element.style.display = 'block';
@@ -106,12 +105,22 @@ Current minimum width: <p id="best_width"></p> - <p id="best_name"></p>
         console.log("handle_bid_submission");
         let bid = document.getElementById("bid-input").value;
         let width_holder = document.getElementById("best_width");
+        let user_name = document.getElementById("user").innerHTML;
         let update = {
-            "bid": parseFloat(bid), 
-            "ask": parseFloat(bid) + parseFloat(width_holder.innerHTML)
+            bid: parseFloat(bid), 
+            ask: parseFloat(bid) + parseFloat(width_holder.innerHTML),
+            user: user_name
         };
         socket.emit("handle_bid_submission", JSON.stringify(update));
     }
+
+    let width_input = document.getElementById("width-input");
+    width_input.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            handle_width_update();
+        }
+    });
 
 </script>
 </body>
