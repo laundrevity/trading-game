@@ -32,7 +32,8 @@ target_link_libraries(main exchange_lib ${Boost_LIBRARIES})
 add_executable(fakex_tests 
 tests/price_tests.cpp 
 tests/account_tests.cpp
-tests/price_level_tests.cpp)
+tests/price_level_tests.cpp
+tests/order_book_tests.cpp)
 target_include_directories(fakex_tests PRIVATE ${CMAKE_SOURCE_DIR}/exchange)
 target_link_libraries(fakex_tests exchange_lib ${Boost_LIBRARIES} GTest::gtest_main)
 gtest_discover_tests(fakex_tests PROPERTIES TIMEOUT 600)

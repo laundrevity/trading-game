@@ -22,6 +22,9 @@ public:
         return total_qty;
     }
 
+    // consume a market order
+    bool consume(const std::shared_ptr<Order>& market);
+
 private:
     std::deque<std::shared_ptr<Order>> orders;
     int total_qty;

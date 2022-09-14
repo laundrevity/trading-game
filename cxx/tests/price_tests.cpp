@@ -9,4 +9,8 @@ TEST(PriceTests, MinMaxRegular) {
     ASSERT_TRUE(p_reg < p_max);
     ASSERT_TRUE(p_min < p_reg);
     ASSERT_TRUE(p_min < p_max);
+    
+    ASSERT_TRUE(p_max > p_reg);
+    ASSERT_TRUE(p_reg > p_min);
+    ASSERT_TRUE(p_max > p_min);
 }

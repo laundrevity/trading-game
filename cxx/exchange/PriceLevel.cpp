@@ -41,3 +41,66 @@ std::shared_ptr<Order> PriceLevel::get_top_order() const {
     }
     return *(orders.begin());
 }
+
+bool PriceLevel::consume(const std::shared_ptr<Order>& market) {
+    if (empty()) {
+        std::cout << "smth is fucked -- called consume on empty price level" << std::endl;
+        return false;
+    }
+    auto limit = get_top_order();
+
+    if (market->get_side() == Side::BUY) {
+        auto buyer = market->get_account_name();
+        auto seller = limit->get_account_name();
+        // order verification (eg checking balance) would occur here
+        size_t limit_qty = limit->get_qty_remaining();
+        size_t market_qty = market->get_qty_remaining();
+        size_t fill_qty = std::min(limit_qty, market_qty);
+        // populate fill_to_notify objects here
+        if (market_qty > limit_qty) {
+            orders.pop_front();
+            market->partially_fill(fill_qty);
+            total_qty -= fill_qty;
+        } else if (market_qty < limit_qty) {
+            limit->partially_fill(fill_qty);
+            market->partially_fill(fill_qty);
+            total_qty -= fill_qty;
+        } else {
+            orders.pop_front();
+            limit->partially_fill(fill_qty);
+            market->partially_fill(fill_qty);
+            total_qty -= fill_qty;
+        }
+
+        // update account balances (use account pointers in orders??)
+        // double tx_val = limit->get_price().get() * fill_qty;
+        // buyer_account->debit(tx_val);
+        // seller_account->credit(tx_val);
+        // update positions for accounts
+        // notify fills
+        return true;
+    } else {
+        auto seller = market->get_account_name();
+        auto buyer = limit->get_account_name();
+        size_t limit_qty = limit->get_qty_remaining();
+        size_t market_qty = market->get_qty_remaining();
+        size_t fill_qty = std::min(limit_qty, market_qty);
+
+        if (market_qty > limit_qty) {
+            orders.pop_front();
+            market->partially_fill(fill_qty);
+            total_qty -= fill_qty;
+        } else if (market_qty < limit_qty) {
+            limit->partially_fill(fill_qty);
+            market->partially_fill(fill_qty);
+            total_qty -= fill_qty;
+        } else {
+            orders.pop_front();
+            limit->partially_fill(fill_qty);
+            market->partially_fill(fill_qty);
+            total_qty -= fill_qty;
+        }
+
+        return true;
+    }
+}
