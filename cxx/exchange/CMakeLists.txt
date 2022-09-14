@@ -4,4 +4,5 @@ add_library(exchange_lib
     Account.cpp
     Order.cpp
     PriceLevel.cpp
-    OrderBook.cpp)
+    OrderBook.cpp
+    Exchange.cpp)

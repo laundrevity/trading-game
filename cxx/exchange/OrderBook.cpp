@@ -188,3 +188,12 @@ bool OrderBook::insert_order(const std::shared_ptr<Order>& order) {
     }
     return true;
 }
+
+std::optional<std::shared_ptr<Order>> OrderBook::get_order(size_t oid) {
+    auto it = orders.find(oid);
+    if (it == orders.end()) {
+        return std::nullopt;
+    }
+
+    return std::make_optional(orders[oid]);
+}

@@ -1,6 +1,7 @@
 #pragma once
 #include <map>
 #include "PriceLevel.h"
+#include <optional>
 
 class OrderBook {
 public:
@@ -38,11 +39,13 @@ public:
     void recalculate_top_bid();
     void recalculate_top_ask();
 
+    std::optional<std::shared_ptr<Order>> get_order(size_t oid);
+
 private:
     size_t instrument_id;
     std::map<int, std::shared_ptr<PriceLevel>> bid_levels;
     std::map<int, std::shared_ptr<PriceLevel>> ask_levels;
-    std::map<int, std::shared_ptr<Order>> orders;
+    std::map<size_t, std::shared_ptr<Order>> orders;
     // make sure to always update best_bid, best_ask, if necessary
     // whenever inserting or cancelling orders
     Price best_bid{Limit::MIN};
