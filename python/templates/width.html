@@ -83,7 +83,8 @@ Current minimum width: <p id="best_width"></p> - <p id="best_name"></p>
     socket.on("advance_to_trading_open", (msg) => {
         console.log("advance_to_trading_open");
         let d = JSON.parse(msg);
-        if (d["initial_mm"] === socket.io.engine.id) {
+        let user_name = document.getElementById("user").innerHTML;
+        if (d["initial_mm"] === user_name) {
             window.location.href = "{{ url_for('market') }}";
         } else {
             window.location.href = "{{ url_for('open_route') }}"

@@ -31,8 +31,8 @@ class GameManager:
         self.current_width_game = None
         initial_qty = len(self.players) - 1
         open_book = {
-            'bids': {f'{open_bid:.1f}': initial_qty}, 
-            'asks': {f'{open_ask:.1f}': initial_qty}
+            'bids': {f'{open_bid:.1f}': 0}, 
+            'asks': {f'{open_ask:.1f}': 0}
         }
         print(f"initializing market game with book={open_book}", flush=True)
         self.current_market_game = MarketGame(self.sio, self.players, open_book)
