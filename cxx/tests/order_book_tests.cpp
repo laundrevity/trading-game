@@ -40,3 +40,41 @@ TEST(OrderBookTests, SimpleInsert) {
     ASSERT_TRUE(book.insert_order(ask_order));
     ASSERT_EQ(book.get_top_ask(), ask_order->get_price());
 }
+
+TEST(OrderBookTests, PartialCrossingInsert) {
+    auto book = OrderBook(0);
+    auto bid_order_1 = std::make_shared<Order>(0, "conor", 0, Price(100), 100, Side::BUY);
+    auto bid_order_2 = std::make_shared<Order>(2, "conor", 0, Price(155), 50, Side::BUY);
+    auto ask_order = std::make_shared<Order>(1, "conor", 0, Price(150), 100, Side::SELL);
+
+    ASSERT_TRUE(book.insert_order(bid_order_1));
+    ASSERT_TRUE(book.insert_order(ask_order));
+    ASSERT_EQ(book.get_top_bid(), bid_order_1->get_price());
+    ASSERT_EQ(book.get_top_ask(), ask_order->get_price());
+
+    ASSERT_TRUE(book.insert_order(bid_order_2));
+    ASSERT_EQ(book.get_top_bid(), bid_order_1->get_price());
+    ASSERT_EQ(book.get_top_ask(), ask_order->get_price());
+    int ask_px_int = ask_order->get_price().get_int();
+    auto top_ask_level = book.get_ask_levels()[ask_px_int];
+    ASSERT_EQ(top_ask_level->get_total_qty(), 50);
+}
+
+TEST(OrderBookTests, ReplaceCrossingInsert) {
+    auto book = OrderBook(0);
+    auto bid_order_1 = std::make_shared<Order>(0, "conor", 0, Price(100), 100, Side::BUY);
+    auto bid_order_2 = std::make_shared<Order>(2, "conor", 0, Price(155), 150, Side::BUY);
+    auto ask_order = std::make_shared<Order>(1, "conor", 0, Price(150), 100, Side::SELL);
+
+    ASSERT_TRUE(book.insert_order(bid_order_1));
+    ASSERT_TRUE(book.insert_order(ask_order));
+    ASSERT_EQ(book.get_top_bid(), bid_order_1->get_price());
+    ASSERT_EQ(book.get_top_ask(), ask_order->get_price());
+
+    ASSERT_TRUE(book.insert_order(bid_order_2));
+    ASSERT_EQ(book.get_top_bid(), bid_order_2->get_price());
+    ASSERT_EQ(book.get_top_ask(), Price(Limit::MAX));
+    int bid_px_int = bid_order_2->get_price().get_int();
+    auto top_bid_level = book.get_bid_levels()[bid_px_int];
+    ASSERT_EQ(top_bid_level->get_total_qty(), 50);
+}

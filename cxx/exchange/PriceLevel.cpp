@@ -2,13 +2,13 @@
 
 PriceLevel::PriceLevel(const std::shared_ptr<Order>& order) {
     orders.emplace_front(order);
-    total_qty = order->get_qty_remaining() * (order->get_side() == Side::BUY ? 1 : -1);
+    total_qty = order->get_qty_remaining();
 }
 
 // add an order to the BACK of the queue
 void PriceLevel::add_order(const std::shared_ptr<Order>& order) {
     orders.emplace_back(order);
-    total_qty += order->get_qty_remaining() * (order->get_side() == Side::BUY ? 1 : -1);
+    total_qty += order->get_qty_remaining();
 }
 
 bool PriceLevel::cancel_order(size_t order_id) {
@@ -26,8 +26,7 @@ bool PriceLevel::cancel_order(size_t order_id) {
         --it;
         auto order = *it;
         orders.erase(it);
-        total_qty -= order->get_qty_remaining() * (order->get_side() == Side::BUY ? 1 : -1);
-        std::cout << "found and cancelled order" << std::endl;
+        total_qty -= order->get_qty_remaining();
         return true;
     } else {
         std::cout << "did not find order w/ order_id=" << order_id << std::endl;
