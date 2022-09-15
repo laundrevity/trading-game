@@ -4,7 +4,7 @@ from socket_manager import UnixSocketManager
 from quart_auth import (
     AuthUser, AuthManager, current_user, login_required, login_user, logout_user
 )
-from utils import load_credentials, get_create_market_message
+from utils import load_credentials
 import socketio
 import asyncio
 import datetime
@@ -111,9 +111,7 @@ async def test_market():
 
     if gm.current_market_game is None:
         gm.initialize_market_game(current_user.auth_id, 100, 105)
-        # tell usm that we want a new market
-        create_msg = get_create_market_message(0, 2, ["conor", "ronoc"])
-        await usm.write_proto_message(create_msg)
+        await usm.create_market(0, 2, ["conor", "ronoc"])
 
     await sio.emit("book", gm.get_book_json(), broadcast=True)
     return await render_template('market.html', user=current_user.auth_id)
@@ -167,3 +165,17 @@ async def handle_open_side(sid, msg):
     await asyncio.sleep(1)
     # broadcast the initial book
     await sio.emit("book", gm.get_book_json(), broadcast=True)
+
+
+@sio.event
+async def handle_click(sid, msg):
+    data = json.loads(msg)
+    print(f"handle_click: {sid=}, {data=}", flush=True)
+    await usm.insert_order(data)
+
+
+@sio.event
+async def handle_right_click(sid, msg):
+    data = json.loads(msg)
+    print(f"handle_right_click: {sid=}, {data=}", flush=True)
+    await usm.cancel_order(data)

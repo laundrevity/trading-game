@@ -13,6 +13,7 @@ class UnixSocketManager:
         path='/app/sock'
     ):
         self.sio = sio
+        self.gm = gm
         self.connected = False
         self.path = path
         self.reader = None
@@ -23,6 +24,8 @@ class UnixSocketManager:
         self.raw_message_queue = asyncio.Queue()
         self.message_queue = asyncio.Queue()
         self.request_id = 0
+        self.instrument = None
+        self.precision = None
 
     async def connect(self):
         if not self.connected:
@@ -95,8 +98,18 @@ class UnixSocketManager:
             for msg_type in set(pb_msg.type):
                 name = pb2._MESSAGETYPE.values_by_number[msg_type].name
                 match name:
+
                     case "CREATE_MARKET_REPLY":
                         print(f"CREATE_MARKET_REPLY", flush=True)
+                        # let gm know that it was created successfully
+                        if self.gm.current_market_game is not None:
+                            # wait a second to allow the page to load in the browser
+                            await asyncio.sleep(1)
+                            print(f"emitting book", flush=True)
+                            await self.sio.emit("book", self.gm.get_book_json(), broadcast=True)
+                        else:
+                            print(f"not emitting book cuz self.gm.current_market_game is None", flush=True)
+
                     case _:
                         print("UNRECOGNIZED MSG TYPE IN consume", flush=True)
 
@@ -111,3 +124,56 @@ class UnixSocketManager:
             self.writer.write(msg)
             await self.writer.drain()
             self.request_id += 1
+
+    async def create_market(self, instrument_id, precision, user_names):
+        instrument = pb2.Instrument(id=instrument_id, precision=precision)
+        create_msg = pb2.CreateMarket(instrument=instrument)
+        for user_name in user_names:
+            create_msg.user_name.append(user_name)
+        message = pb2.Message(type=['CREATE_MARKET'], create_market=create_msg)
+        await self.write_proto_message(message)
+        self.instrument = instrument
+        self.precision = precision
+
+    async def insert_order(self, data):
+        order_px_int = int(float(data['row']) * 10**(self.precision))
+
+        if "your" in data['column']:
+            if data['column'] == "your_bid_qty":
+                insert_msg = pb2.InsertOrder(
+                    request_id=self.request_id,
+                    instrument=self.instrument,
+                    account_name=data['user'],
+                    volume=1,
+                    price=order_px_int,
+                    side=pb2.BUY)
+            else:
+                insert_msg = pb2.InsertOrder(
+                    request_id=self.request_id,
+                    instrument=self.instrument,
+                    account_name=data['user'],
+                    volume=1,
+                    price=order_px_int,
+                    side=pb2.SELL)
+            message = pb2.Message(type=['INSERT_ORDER'], insert_order=insert_msg)
+            await self.write_proto_message(message)
+    
+    async def cancel_order(self, data):
+        order_px_int = int(float(data['row']) * 10**(self.precision))
+        if "your" in data['column']:
+            if data['column'] == "your_bid_qty":
+                cancel_msg = pb2.CancelOrder(
+                    request_id=self.request_id,
+                    instrument=self.instrument,
+                    account_name=data['user'],
+                    price=order_px_int,
+                    side=pb2.BUY)
+            else:
+                cancel_msg = pb2.CancelOrder(
+                    request_id=self.request_id,
+                    instrument=self.instrument,
+                    account_name=data['user'],
+                    price=order_px_int,
+                    side = pb2.SELL)
+            message = pb2.Message(type=['CANCEL_ORDER'], cancel_order=cancel_msg)
+            await self.write_proto_message(message)

@@ -44,7 +44,7 @@ message InsertOrderReply {
 }
 
 message CancelOrder {
-    required uint32 requiest_id = 1;
+    required uint32 request_id = 1;
     required Instrument instrument = 2;
     required string account_name = 3;
     required int64 price = 4;
@@ -52,7 +52,7 @@ message CancelOrder {
 }
 
 message CancelOrderReply {
-    required uint32 requiest_id = 1;
+    required uint32 request_id = 1;
     required uint32 error_code = 2;
     optional string text = 3;
 }

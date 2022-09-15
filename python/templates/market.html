@@ -108,10 +108,24 @@
 
     function handle_click(row, column) {
         console.log("handle_click, row=", row, ", column=", column);
+        let user_name = document.getElementById("user").innerHTML;
+        let payload = {
+            user: user_name,
+            row: row,
+            column: column
+        };
+        socket.emit("handle_click", JSON.stringify(payload));
     }
 
     function handle_right_click(row, column) {
         console.log("handle_right_click, row=", row, ", column=", column);
+        let user_name = document.getElementById("user").innerHTML;
+        let payload = {
+            user: user_name,
+            row: row,
+            column: column
+        };
+        socket.emit("handle_right_click", JSON.stringify(payload));        
     }
     
 
