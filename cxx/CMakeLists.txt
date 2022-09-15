@@ -25,15 +25,17 @@ find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/exchange)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/server)
 
 add_executable(main startup/main.cpp)
-target_link_libraries(main exchange_lib ${Boost_LIBRARIES})
+target_link_libraries(main exchange_lib server_lib)
 
 add_executable(fakex_tests 
 tests/price_tests.cpp 
 tests/account_tests.cpp
 tests/price_level_tests.cpp
-tests/order_book_tests.cpp)
+tests/order_book_tests.cpp
+tests/exchange_tests.cpp)
 target_include_directories(fakex_tests PRIVATE ${CMAKE_SOURCE_DIR}/exchange)
 target_link_libraries(fakex_tests exchange_lib ${Boost_LIBRARIES} GTest::gtest_main)
 gtest_discover_tests(fakex_tests PROPERTIES TIMEOUT 600)

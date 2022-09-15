@@ -19,6 +19,7 @@ app = socketio.ASGIApp(sio, quart_app)
 usm = UnixSocketManager(sio)
 gm = GameManager(sio)
 
+
 async def tick():
     while True:
         data = {
@@ -36,6 +37,7 @@ async def tick():
 @quart_app.before_serving
 async def initialize():
     loop = asyncio.get_event_loop()
+    loop.create_task(usm.start())
     loop.create_task(tick())
     gm.credentials = load_credentials()
     print(f"loaded creds: {gm.credentials}")
