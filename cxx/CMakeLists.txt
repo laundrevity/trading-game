@@ -21,14 +21,38 @@ conan_cmake_run(CONANFILE conanfile.py BASIC_SETUP CMAKE_TARGETS BUILD missing)
 enable_testing()
 find_package(GTest REQUIRED)
 include(GoogleTest)
+
 find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
+
+find_package(Protobuf REQUIRED)
+include_directories(${Protobuf_INCLUDE_DIRS})
+
+
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS common.proto)
+
+execute_process(COMMAND ${PROTOBUF_PROTOC_EXECUTABLE} 
+--proto_path=${CMAKE_CURRENT_SOURCE_DIR} 
+--python_out=/app/python
+common.proto)
+
+# protobuf_generate_python(PROTO_PY common.proto)
+# add_custom_target(myTarget ALL DEPENDS ${PROTO_PY})
+# configure_file(${PROTO_PY} "/app/python/${PROTO_PY}" COPYONLY)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/exchange)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/server)
 
 add_executable(main startup/main.cpp)
 target_link_libraries(main exchange_lib server_lib)
+
+target_link_libraries(server_lib protobuf::libprotobuf)
+target_include_directories(server_lib PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+add_executable(proto_test startup/proto_test.cpp ${PROTO_SRCS} ${PROTO_HDRS})
+target_link_libraries(proto_test protobuf::libprotobuf)
+target_include_directories(proto_test PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
 
 add_executable(fakex_tests 
 tests/price_tests.cpp 

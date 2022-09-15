@@ -1,0 +1,80 @@
+syntax = "proto2";
+package ProtoCommon;
+
+enum MessageType {
+    GENERIC_REPLY = 0;
+    INSERT_ORDER = 1;
+    INSERT_ORDER_REPLY = 2;
+    CANCEL_ORDER = 3;
+    CANCEL_ORDER_REPLY = 4;
+    TRADE = 5;
+    CREATE_MARKET = 6;
+}
+
+enum Side {
+    BUY = 0;
+    SELL = 1;
+}
+
+message Instrument {
+    required uint64 id = 1;
+    required uint64 precision = 2;
+}
+
+message GenericReply {
+    required uint32 request_id  = 1;
+    required uint32 error_code  = 2;
+    optional string text        = 3;
+}
+
+message InsertOrder {
+    required uint32 request_id = 1;
+    required Instrument instrument = 2;
+    required string account_name = 3;
+    required uint64 volume = 4;
+    required int64 price = 5; // in divisor_ticks, convertible with precision
+    required Side side = 6;   
+}
+
+message InsertOrderReply {
+    required uint32 request_id = 1;
+    required uint32 error_code = 2;
+    optional string text = 3;
+}
+
+message CancelOrder {
+    required uint32 requiest_id = 1;
+    required Instrument instrument = 2;
+    required string account_name = 3;
+    required int64 price = 4;
+    required Side side = 5;
+}
+
+message CancelOrderReply {
+    required uint32 requiest_id = 1;
+    required uint32 error_code = 2;
+    optional string text = 3;
+}
+
+message Trade {
+    required Instrument instrument = 1;
+    required uint64 volume = 2;
+    required int64 price = 3;
+    required string buyer_account = 4;
+    required string seller_account = 5;
+}
+
+message CreateMarket {
+    required Instrument instrument = 1;
+    repeated string user_name = 2;
+}
+
+message Message {
+    repeated MessageType type = 1;
+    optional InsertOrder insert_order = 2;
+    optional InsertOrderReply insert_order_reply = 3;
+    optional CancelOrder cancel_order = 4;
+    optional CancelOrderReply cancel_order_reply = 5;
+    optional Trade trade = 6;
+    optional CreateMarket create_market = 7;
+}

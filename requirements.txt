@@ -2,4 +2,4 @@ requests==2.27.1
 quart==0.18.0
 quart-auth==0.7.0
 python-socketio==5.5.2
-numpy==1.22.3
+protobuf==4.21.6

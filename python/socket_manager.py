@@ -1,5 +1,7 @@
 import socketio
 import asyncio
+import struct
+
 
 class UnixSocketManager:
     def __init__(self, sio: socketio.AsyncServer, path='/app/sock'):
@@ -10,6 +12,8 @@ class UnixSocketManager:
         self.writer = None
         self.bytes_sent = 0
         self.connected = False
+        self.writer_lock = asyncio.Lock()
+        self.request_id = 0
 
     async def connect(self):
         if not self.connected:
@@ -34,3 +38,11 @@ class UnixSocketManager:
     async def start(self):
         await self.connect()
         await self.listen()
+
+    async def write_proto_message(self, proto):
+        async with self.writer_lock:
+            header = struct.pack('<L', proto.ByteSize()) + b'\x00'*4
+            msg = header + proto.SerializeToString()
+            self.writer.write(msg)
+            await self.writer.drain()
+            self.request_id += 1

@@ -4,12 +4,13 @@ from socket_manager import UnixSocketManager
 from quart_auth import (
     AuthUser, AuthManager, current_user, login_required, login_user, logout_user
 )
-from utils import load_credentials
+from utils import load_credentials, get_create_market_message
 import socketio
 import asyncio
 import datetime
 import json
-
+import signal
+from typing import Any
 
 quart_app = Quart(__name__)
 quart_app.secret_key = 'superdupersecret'
@@ -19,6 +20,11 @@ app = socketio.ASGIApp(sio, quart_app)
 usm = UnixSocketManager(sio)
 gm = GameManager(sio)
 
+shutdown_event = asyncio.Event()
+
+
+def _signal_handler(*_: Any) -> None:
+    shutdown_event.set()
 
 async def tick():
     while True:
@@ -30,6 +36,9 @@ async def tick():
             await gm.current_width_game.handle_tick()
             data['width_time_left'] = gm.current_width_game.time_left
 
+        if gm.current_market_game is not None:
+            await sio.emit("book", gm.get_book_json(), broadcast=True)
+
         await sio.emit('tick', json.dumps(data), broadcast=True)
         await asyncio.sleep(1)
 
@@ -39,6 +48,7 @@ async def initialize():
     loop = asyncio.get_event_loop()
     loop.create_task(usm.start())
     loop.create_task(tick())
+    loop.add_signal_handler(signal.SIGTERM, _signal_handler)
     gm.credentials = load_credentials()
     print(f"loaded creds: {gm.credentials}")
 
@@ -89,6 +99,20 @@ async def handle_login():
     else:
         print(f"Login failed with {creds=}")
         return jsonify({'success': 'FALSE'})
+
+
+@quart_app.route('/test_market')
+@login_required
+async def test_market():
+
+    if gm.current_market_game is None:
+        gm.initialize_market_game(current_user.auth_id, 100, 105)
+        # tell usm that we want a new market
+        create_msg = get_create_market_message(0, 2, ["conor", "ronoc"])
+        await usm.write_proto_message(create_msg)
+
+    await sio.emit("book", gm.get_book_json(), broadcast=True)
+    return await render_template('market.html', user=current_user.auth_id)
 
 
 @sio.on('connect')
