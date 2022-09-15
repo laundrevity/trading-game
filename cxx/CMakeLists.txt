@@ -46,7 +46,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/server)
 add_executable(main startup/main.cpp)
 target_link_libraries(main exchange_lib server_lib)
 
-target_link_libraries(server_lib protobuf::libprotobuf)
+target_link_libraries(server_lib protobuf::libprotobuf exchange_lib)
 target_include_directories(server_lib PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})

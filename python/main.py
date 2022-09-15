@@ -17,8 +17,8 @@ quart_app.secret_key = 'superdupersecret'
 AuthManager(quart_app)
 sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins='*')
 app = socketio.ASGIApp(sio, quart_app)
-usm = UnixSocketManager(sio)
 gm = GameManager(sio)
+usm = UnixSocketManager(sio, gm)
 
 shutdown_event = asyncio.Event()
 
@@ -36,8 +36,10 @@ async def tick():
             await gm.current_width_game.handle_tick()
             data['width_time_left'] = gm.current_width_game.time_left
 
-        if gm.current_market_game is not None:
-            await sio.emit("book", gm.get_book_json(), broadcast=True)
+        # instead, send book when we get MARKET_CREATED message from game server
+        # if gm.current_market_game is not None:
+        #     if not gm.current_market_game.unsent:
+        #         await sio.emit("book", gm.get_book_json(), broadcast=True)
 
         await sio.emit('tick', json.dumps(data), broadcast=True)
         await asyncio.sleep(1)
@@ -47,6 +49,8 @@ async def tick():
 async def initialize():
     loop = asyncio.get_event_loop()
     loop.create_task(usm.start())
+    loop.create_task(usm.process())
+    loop.create_task(usm.consume())
     loop.create_task(tick())
     loop.add_signal_handler(signal.SIGTERM, _signal_handler)
     gm.credentials = load_credentials()

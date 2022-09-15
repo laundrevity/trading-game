@@ -9,6 +9,7 @@ enum MessageType {
     CANCEL_ORDER_REPLY = 4;
     TRADE = 5;
     CREATE_MARKET = 6;
+    CREATE_MARKET_REPLY = 7;
 }
 
 enum Side {
@@ -69,6 +70,12 @@ message CreateMarket {
     repeated string user_name = 2;
 }
 
+message CreateMarketReply {
+    required Instrument instrument = 1;
+    required uint32 error_code = 2;
+    optional string text = 3;
+}
+
 message Message {
     repeated MessageType type = 1;
     optional InsertOrder insert_order = 2;
@@ -77,4 +84,5 @@ message Message {
     optional CancelOrderReply cancel_order_reply = 5;
     optional Trade trade = 6;
     optional CreateMarket create_market = 7;
+    optional CreateMarketReply create_market_reply = 8;
 }

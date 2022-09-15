@@ -16,3 +16,9 @@ enum class MessageKind {
     BUSINESS = 0x00,
     OTHER = 0x01
 };
+
+Header BuildHeader(MessageKind message_kind, const std::string& data) {
+    const auto size = static_cast<int32_t>(data.length());
+    const auto aux = static_cast<uint32_t>(message_kind);
+    return Header{size, aux};
+}

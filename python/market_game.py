@@ -15,6 +15,7 @@ class MarketGame:
         self.book = book
         self.tick_size = 0.1
         self.columns = ['your bid qty', 'market bid qty', 'price', 'market ask qty', 'your ask qty']
+        self.unsent = True
 
     def get_levels_grid(self):
         # first populate rows based on min/max price in book
