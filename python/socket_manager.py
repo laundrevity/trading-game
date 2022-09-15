@@ -139,41 +139,44 @@ class UnixSocketManager:
         order_px_int = int(float(data['row']) * 10**(self.precision))
 
         if "your" in data['column']:
-            if data['column'] == "your_bid_qty":
+            if "bid" in data['column']:
+                print(f"found your_bid_qty", flush=True)
                 insert_msg = pb2.InsertOrder(
                     request_id=self.request_id,
                     instrument=self.instrument,
                     account_name=data['user'],
                     volume=1,
                     price=order_px_int,
-                    side=pb2.BUY)
+                    side=0)
             else:
+                print(f"did not find your_bid_qty", flush=True)
                 insert_msg = pb2.InsertOrder(
                     request_id=self.request_id,
                     instrument=self.instrument,
                     account_name=data['user'],
                     volume=1,
                     price=order_px_int,
-                    side=pb2.SELL)
+                    side=1)
+            print(f"side={insert_msg.side}", flush=True)
             message = pb2.Message(type=['INSERT_ORDER'], insert_order=insert_msg)
             await self.write_proto_message(message)
     
     async def cancel_order(self, data):
         order_px_int = int(float(data['row']) * 10**(self.precision))
         if "your" in data['column']:
-            if data['column'] == "your_bid_qty":
+            if "bid" in data["column"]:
                 cancel_msg = pb2.CancelOrder(
                     request_id=self.request_id,
                     instrument=self.instrument,
                     account_name=data['user'],
                     price=order_px_int,
-                    side=pb2.BUY)
+                    side=0)
             else:
                 cancel_msg = pb2.CancelOrder(
                     request_id=self.request_id,
                     instrument=self.instrument,
                     account_name=data['user'],
                     price=order_px_int,
-                    side = pb2.SELL)
+                    side = 1)
             message = pb2.Message(type=['CANCEL_ORDER'], cancel_order=cancel_msg)
             await self.write_proto_message(message)

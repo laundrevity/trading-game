@@ -22,6 +22,14 @@ public:
         return book_map;
     }
 
+    size_t get_book_order_id(size_t instrument_id) {
+        return book_order_ids[instrument_id];
+    }
+
+    void increment_book_order_id(size_t iid) {
+        ++book_order_ids[iid];
+    }
+
 private:
     std::map<std::string, std::shared_ptr<Account>> account_map;
     std::map<size_t, std::shared_ptr<OrderBook>> book_map;

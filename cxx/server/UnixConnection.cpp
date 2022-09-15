@@ -58,6 +58,47 @@ void UnixConnection::handle_read(const boost::system::error_code& error, size_t 
 
                         case ProtoCommon::INSERT_ORDER: {
                             std::cout << "INSERT_ORDER" << std::endl;
+                            
+                            auto insert_message = msg.insert_order();
+                            auto instrument = insert_message.instrument();
+                            size_t instrument_id = instrument.id();
+                            size_t precision = instrument.precision();
+                            std::string account_name = insert_message.account_name();
+
+                            auto book_opt = exchange->get_book(instrument_id);
+                            if (book_opt) {
+                                auto account_opt = exchange->get_account(account_name);
+                                if (account_opt) {
+                                    // create order object
+                                    size_t next_order_id = exchange->get_book_order_id(instrument_id);
+                                    auto order = std::make_shared<Order>(
+                                        next_order_id,
+                                        account_name,
+                                        instrument_id,
+                                        Price(insert_message.price()),
+                                        insert_message.volume(),
+                                        (insert_message.side() == ProtoCommon::BUY) ? Side::BUY : Side::SELL
+                                    );
+
+                                    if (exchange->process_order(order)) {
+                                        std::cout << "successfully processed order: ";
+                                        std::cout << "user=" << account_name << ", px=" << Price(insert_message.price());
+                                        std::cout << ", volume=" << insert_message.volume() << ", side=" << int(order->get_side()) << std::endl;
+                                        // send INSERT_ORDER_REPLY with error=0
+                                    } else {
+                                        std::cout << "failed to process order: ";
+                                        std::cout << "user=" << account_name << ", px=" << Price(insert_message.price());
+                                        std::cout << ", volume=" << insert_message.volume() << ", side=" << int(order->get_side()) << std::endl;                                        
+                                        // send INSERT_ORDER_REPLY with error=1
+                                    }
+                                    exchange->increment_book_order_id(instrument_id);
+                                } else {
+                                    std::cout << "cant send order because account_name=" << account_name << " is not registered" << std::endl;
+                                }
+                            } else {
+                                std::cout << "cant send order because book_id=" << instrument_id << " is not registered" << std::endl;
+                            }
+
                             break;
                         }
 
