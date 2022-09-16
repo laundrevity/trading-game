@@ -41,6 +41,10 @@ public:
 
     std::optional<std::shared_ptr<Order>> get_order(size_t oid);
 
+    std::map<size_t, std::shared_ptr<Order>> get_order_map() {
+        return orders;
+    }
+
 private:
     size_t instrument_id;
     std::map<int, std::shared_ptr<PriceLevel>> bid_levels;

@@ -105,6 +105,36 @@ void UnixConnection::handle_read(const boost::system::error_code& error, size_t 
 
                         case ProtoCommon::CANCEL_ORDER: {
                             std::cout << "CANCEL_ORDER" << std::endl;
+
+                            auto cancel = msg.cancel_order();
+                            auto instrument = cancel.instrument();
+                            size_t instrument_id = instrument.id();
+                            size_t precision = instrument.precision();
+                            std::string account_name = cancel.account_name();
+                            auto price = Price(cancel.price());
+                            auto side = (cancel.side() == ProtoCommon::BUY ? Side::BUY : Side::SELL);
+
+                            auto book_opt = exchange->get_book(instrument_id);
+                            if (book_opt) {
+                                auto account_opt = exchange->get_account(account_name);
+                                if (account_opt) {
+                                    auto order_map = book_opt.value()->get_order_map();
+                                    for (auto& [oid, order]:  order_map) {
+                                        if (order->get_account_name() == account_name) {
+                                            if (order->get_price() == price) {
+                                                if (order->get_side() == side) {
+                                                    book_opt.value()->cancel_order(oid);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    notify_level_update(instrument_id, account_name, 0, price, side);
+                                } else {
+                                    std::cout << "failed to cancel order because account=" << account_name << " is unregistered" << std::endl;
+                                }
+                            } else {
+                                std::cout << "failed to cancel order because book=" << instrument_id << " is unregistered" << std::endl;
+                            }
                             break;
                         }
 

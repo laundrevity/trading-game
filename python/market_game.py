@@ -1,3 +1,5 @@
+from plistlib import InvalidFileException
+from xml.dom import InvalidModificationErr
 from socketio import AsyncServer
 from enum import Enum
 from typing import List, Dict
@@ -61,16 +63,43 @@ class MarketGame:
         return rows, self.columns, grid
 
     def add_order(self, player, price, qty, side):
+        px_str = f'{(price/(10**self.precision)):.2f}'
         if side == 0:
-            px_str = f'{(price/(10**self.precision)):.2f}'
-            if px_str not in self.book['bids']:
-                self.book['bids'][px_str] = []
-            self.book['bids'][px_str].append([player, qty])
+
+            if qty == 0:
+                # cancel all of the orders for this guy
+                indices_to_remove = []
+                for i, x in enumerate(self.book['bids'][px_str]):
+                    if x[0] == player:
+                        indices_to_remove.append(i)
+
+                self.book['bids'][px_str] = [
+                    self.book.bids[px_str][j]
+                    for j in range(len(self.book['bids'][px_str]))
+                    if j not in indices_to_remove
+                ]
+            
+            else:
+                if px_str not in self.book['bids']:
+                    self.book['bids'][px_str] = []
+                self.book['bids'][px_str].append([player, qty])
         else:
-            px_str = f'{(price/(10**self.precision)):.2f}'
-            if px_str not in self.book['asks']:
-                self.book['asks'][px_str] = []
-            self.book['asks'][px_str].append([player, qty])
+            if qty == 0:
+                indices_to_remove = []
+                for i, x in enumerate(self.book['asks'][px_str]):
+                    if x[0] == player:
+                        indices_to_remove.append(i)
+                
+                self.book['asks'][px_str] = [
+                    self.book['asks'][px_str][j]
+                    for j in range(len(self.book['asks'][px_str]))
+                    if j not in indices_to_remove
+                ]
+                
+            else:
+                if px_str not in self.book['asks']:
+                    self.book['asks'][px_str] = []
+                self.book['asks'][px_str].append([player, qty])
 
     def process_trade(self, passive_player, price, qty, passive_side):
         px_str = f'{(price/(10**self.precision)):.2f}'
