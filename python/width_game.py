@@ -17,8 +17,8 @@ class WidthGame:
         self.state = WidthGameState.INITIAL
         self.best_width = None
         self.best_player = None
-        self.time_left = 120
-        self.seconds_per_update = 30
+        self.time_left = 60
+        self.seconds_per_update = 15
     
     async def update(self, width: float, player: str):
         print(f"WidthGame.update, {width=}, {player=}")

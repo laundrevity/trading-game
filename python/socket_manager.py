@@ -25,7 +25,7 @@ class UnixSocketManager:
         self.message_queue = asyncio.Queue()
         self.request_id = 0
         self.instrument = None
-        self.precision = None
+        self.precision = 2
 
     async def connect(self):
         if not self.connected:
@@ -148,7 +148,9 @@ class UnixSocketManager:
         await self.listen()
 
     async def write_proto_message(self, proto):
+        print("write_proto_message", flush=True)
         async with self.writer_lock:
+            print("got writer lock", flush=True)
             header = struct.pack('<L', proto.ByteSize()) + b'\x00'*4
             msg = header + proto.SerializeToString()
             self.writer.write(msg)

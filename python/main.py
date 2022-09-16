@@ -76,7 +76,7 @@ async def width():
 @quart_app.route('/market')
 @login_required
 async def market():
-    return await render_template('market.html')
+    return await render_template('market.html', user=current_user.auth_id)
 
 
 @quart_app.route('/open')
@@ -132,10 +132,11 @@ async def handle_width_update(sid, msg):
     
 
     if gm.current_width_game is not None:
-        await gm.current_width_game.update(
-            float(data['width']),
-            data['user']
-        )
+        if data['width'] != '':
+            await gm.current_width_game.update(
+                float(data['width']),
+                data['user']
+            )
     else:
         print(f"Not updating width because gm.current_width_game is none", flush=True)
 
@@ -150,13 +151,15 @@ async def handle_bid_submission(sid, msg):
         'initial_mm': data['user']
     }
     gm.initialize_market_game(data['user'], data['bid'], data['ask'])
+    await usm.create_market(0, 2, gm.players)
     # redirect to trading open (all but MM)
     await sio.emit("advance_to_trading_open", json.dumps(payload), broadcast=True)
     # wait a second for folks to get redirected
     await asyncio.sleep(1)
     # broadcast the initial book and prices
     await sio.emit("initial_prices", json.dumps(payload), broadcast=True)
-    await sio.emit("book", gm.get_book_json(), broadcast=True)
+    for player in gm.players:
+        await sio.emit("book", gm.get_book_json(player), broadcast=True)
 
 
 @sio.event
@@ -166,7 +169,8 @@ async def handle_open_side(sid, msg):
     await sio.emit("advance_to_market", json.dumps({}))
     await asyncio.sleep(1)
     # broadcast the initial book
-    await sio.emit("book", gm.get_book_json(), broadcast=True)
+    for player in gm.players:
+        await sio.emit("book", gm.get_book_json(player), broadcast=True)
 
 
 @sio.event
