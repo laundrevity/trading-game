@@ -110,6 +110,13 @@ class UnixSocketManager:
                         else:
                             print(f"not emitting book cuz self.gm.current_market_game is None", flush=True)
 
+                    case "TRADE":
+                        trade = pb_msg.trade
+                        instrument = trade.instrument
+                        iid = instrument.id
+                        precision = instrument.precision
+                        print(f"TRADE: {iid=}, {precision=}, {trade.volume=}, {trade.price=}, {trade.buyer_account=}, {trade.seller_account=}")
+
                     case _:
                         print("UNRECOGNIZED MSG TYPE IN consume", flush=True)
 

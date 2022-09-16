@@ -79,6 +79,7 @@ void UnixConnection::handle_read(const boost::system::error_code& error, size_t 
                                         insert_message.volume(),
                                         (insert_message.side() == ProtoCommon::BUY) ? Side::BUY : Side::SELL
                                     );
+                                    order->attach_connection(shared_from_this());
 
                                     if (exchange->process_order(order)) {
                                         std::cout << "successfully processed order: ";
@@ -102,18 +103,8 @@ void UnixConnection::handle_read(const boost::system::error_code& error, size_t 
                             break;
                         }
 
-                        case ProtoCommon::INSERT_ORDER_REPLY: {
-                            std::cout << "INSERT_ORDER_REPLY" << std::endl;
-                            break;
-                        }
-
                         case ProtoCommon::CANCEL_ORDER: {
                             std::cout << "CANCEL_ORDER" << std::endl;
-                            break;
-                        }
-
-                        case ProtoCommon::CANCEL_ORDER_REPLY: {
-                            std::cout << "CANCEL_ORDER_REPLY" << std::endl;
                             break;
                         }
 
@@ -178,4 +169,22 @@ void UnixConnection::handle_read(const boost::system::error_code& error, size_t 
             this->handle_read(e, nbt);
         }
     );
+}
+
+void UnixConnection::notify_fill(size_t instrument_id, size_t volume, Price price, std::string buyer, std::string seller) {
+    ProtoCommon::Message trade;
+    trade.add_type(ProtoCommon::TRADE);
+    trade.mutable_trade()->mutable_instrument()->set_id(instrument_id);
+    trade.mutable_trade()->mutable_instrument()->set_precision(price.get_precision());
+    trade.mutable_trade()->set_volume(volume);
+    trade.mutable_trade()->set_price(price.get_int());
+    trade.mutable_trade()->set_buyer_account(buyer);
+    trade.mutable_trade()->set_seller_account(seller);
+    std::string trade_string;
+    trade.SerializeToString(&trade_string);
+    const auto header = BuildHeader(MessageKind::BUSINESS, trade_string);
+    const char* header_bytes = reinterpret_cast<const char*>(&header);
+    std::string trade_full_string(header_bytes, 8);
+    trade_full_string += trade_string;
+    write(trade_full_string);
 }

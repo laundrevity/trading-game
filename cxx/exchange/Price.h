@@ -36,6 +36,10 @@ public:
         return integer_part * ballast + remainder;
     }
 
+    size_t get_precision() const {
+        return precision;
+    }
+
     // assignment
     Price& operator=(const Price& other);
     // addition

@@ -4,12 +4,11 @@ package ProtoCommon;
 enum MessageType {
     GENERIC_REPLY = 0;
     INSERT_ORDER = 1;
-    INSERT_ORDER_REPLY = 2;
-    CANCEL_ORDER = 3;
-    CANCEL_ORDER_REPLY = 4;
-    TRADE = 5;
-    CREATE_MARKET = 6;
-    CREATE_MARKET_REPLY = 7;
+    CANCEL_ORDER = 2;
+    LEVEL_UPDATE = 3;
+    TRADE = 4;
+    CREATE_MARKET = 5;
+    CREATE_MARKET_REPLY = 6;
 }
 
 enum Side {
@@ -37,12 +36,6 @@ message InsertOrder {
     required Side side = 6;   
 }
 
-message InsertOrderReply {
-    required uint32 request_id = 1;
-    required uint32 error_code = 2;
-    optional string text = 3;
-}
-
 message CancelOrder {
     required uint32 request_id = 1;
     required Instrument instrument = 2;
@@ -51,10 +44,12 @@ message CancelOrder {
     required Side side = 5;
 }
 
-message CancelOrderReply {
-    required uint32 request_id = 1;
-    required uint32 error_code = 2;
-    optional string text = 3;
+message LevelUpdate {
+    required Instrument instrument = 1;
+    required string account_name = 2;
+    required uint64 volume = 3;
+    required int64 price = 4;
+    required Side side = 5;
 }
 
 message Trade {
@@ -79,10 +74,9 @@ message CreateMarketReply {
 message Message {
     repeated MessageType type = 1;
     optional InsertOrder insert_order = 2;
-    optional InsertOrderReply insert_order_reply = 3;
-    optional CancelOrder cancel_order = 4;
-    optional CancelOrderReply cancel_order_reply = 5;
-    optional Trade trade = 6;
-    optional CreateMarket create_market = 7;
-    optional CreateMarketReply create_market_reply = 8;
+    optional CancelOrder cancel_order = 3;
+    optional LevelUpdate level_update = 4;
+    optional Trade trade = 5;
+    optional CreateMarket create_market = 6;
+    optional CreateMarketReply create_market_reply = 7;
 }

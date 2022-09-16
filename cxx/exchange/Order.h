@@ -3,6 +3,8 @@
 #include "Price.h"
 #include <memory>
 
+class UnixConnection;
+
 enum class Side{
     BUY = 0,
     SELL = 1
@@ -44,6 +46,8 @@ public:
         filled_qty += fill_qty;
     }
 
+    void attach_connection(const std::shared_ptr<UnixConnection>& uc);
+
 private:
     size_t order_id;
     std::shared_ptr<Account> account;
@@ -53,4 +57,7 @@ private:
     size_t filled_qty;
     Side side;
     bool alive;
+
+public:
+    std::shared_ptr<UnixConnection> connection;
 };

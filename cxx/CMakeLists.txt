@@ -40,11 +40,11 @@ common.proto)
 # add_custom_target(myTarget ALL DEPENDS ${PROTO_PY})
 # configure_file(${PROTO_PY} "/app/python/${PROTO_PY}" COPYONLY)
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/exchange)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/server)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/exchange)
 
 add_executable(main startup/main.cpp)
-target_link_libraries(main exchange_lib server_lib)
+target_link_libraries(main PUBLIC exchange_lib server_lib)
 
 target_link_libraries(server_lib protobuf::libprotobuf exchange_lib)
 target_include_directories(server_lib PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)

@@ -25,6 +25,8 @@ public:
 
     void handle_read(const boost::system::error_code& e, size_t nbt);
 
+    void notify_fill(size_t instrument_id, size_t volume, Price price, std::string buyer, std::string seller);
+
     char read_message[1024]{};
 
 private:

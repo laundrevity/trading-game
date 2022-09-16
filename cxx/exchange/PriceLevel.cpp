@@ -1,4 +1,5 @@
 #include "PriceLevel.h"
+#include "../server/UnixConnection.h"
 
 PriceLevel::PriceLevel(const std::shared_ptr<Order>& order) {
     orders.emplace_front(order);
@@ -82,6 +83,11 @@ bool PriceLevel::consume(const std::shared_ptr<Order>& market) {
         seller->set_position(iid, seller->get_position(iid) - fill_qty);
         
         // notify fills
+        if (limit->connection) {
+            limit->connection->notify_fill(iid, fill_qty, limit->get_price(), buyer->get_account_name(), seller->get_account_name());
+        }
+        
+
         return true;
     } else {
         auto seller = market->get_account();
