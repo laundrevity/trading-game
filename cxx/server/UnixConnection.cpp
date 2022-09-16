@@ -180,6 +180,7 @@ void UnixConnection::notify_fill(size_t instrument_id, size_t volume, Price pric
     trade.mutable_trade()->set_price(price.get_int());
     trade.mutable_trade()->set_buyer_account(buyer);
     trade.mutable_trade()->set_seller_account(seller);
+
     std::string trade_string;
     trade.SerializeToString(&trade_string);
     const auto header = BuildHeader(MessageKind::BUSINESS, trade_string);
@@ -188,3 +189,23 @@ void UnixConnection::notify_fill(size_t instrument_id, size_t volume, Price pric
     trade_full_string += trade_string;
     write(trade_full_string);
 }
+
+void UnixConnection::notify_level_update(size_t iid, std::string account, size_t volume, Price price, Side side) {
+    ProtoCommon::Message update;
+    update.add_type(ProtoCommon::LEVEL_UPDATE);
+    update.mutable_level_update()->mutable_instrument()->set_id(iid);
+    update.mutable_level_update()->mutable_instrument()->set_precision(price.get_precision());\
+    update.mutable_level_update()->set_account_name(account);
+    update.mutable_level_update()->set_volume(volume);
+    update.mutable_level_update()->set_price(price.get_int());
+    auto proto_side = (side == Side::BUY ? ProtoCommon::BUY : ProtoCommon::SELL);
+    update.mutable_level_update()->set_side(proto_side);
+
+    std::string update_string;
+    update.SerializeToString(&update_string);
+    const auto header = BuildHeader(MessageKind::BUSINESS, update_string);
+    const char* header_bytes = reinterpret_cast<const char*>(&header);
+    std::string update_full_string(header_bytes, 8);
+    update_full_string += update_string;
+    write(update_full_string);
+}   

@@ -27,6 +27,8 @@ public:
 
     void notify_fill(size_t instrument_id, size_t volume, Price price, std::string buyer, std::string seller);
 
+    void notify_level_update(size_t instrument_id, std::string account_name, size_t volume, Price price, Side side);
+
     char read_message[1024]{};
 
 private:

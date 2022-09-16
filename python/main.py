@@ -110,10 +110,12 @@ async def handle_login():
 async def test_market():
 
     if gm.current_market_game is None:
-        gm.initialize_market_game(current_user.auth_id, 100, 105)
+        gm.initialize_market_game(current_user.auth_id, 100, 101)
         await usm.create_market(0, 2, ["conor", "ronoc"])
 
-    await sio.emit("book", gm.get_book_json(), broadcast=True)
+    for player in gm.players:
+        await sio.emit("book", gm.get_book_json(player), broadcast=True)
+    
     return await render_template('market.html', user=current_user.auth_id)
 
 

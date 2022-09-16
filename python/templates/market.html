@@ -53,57 +53,62 @@
         let rows = data['rows'];
         let columns = data['columns'];
         let grid = data['grid'];
+        let user = data['player'];
 
-        let table = document.createElement('table');
-        let thead = document.createElement('thead');
-        let tbody = document.createElement('tbody');
-        table.appendChild(thead);
-        table.appendChild(tbody);
-
-        let hr = document.createElement('tr');
-        let hr1 = document.createElement('th');
-        let hr2 = document.createElement('th');
-        let hr3 = document.createElement('th');
-        let hr4 = document.createElement('th');
-        let hr5 = document.createElement('th');
-        
-        hr1.innerHTML = 'your bid qty';
-        hr2.innerHTML = 'market bid qty';
-        hr3.innerHTML = 'price';
-        hr4.innerHTML = 'market ask qty';
-        hr5.innerHTML = 'your ask qty';
-        
-        hr.append(hr1);
-        hr.append(hr2);
-        hr.append(hr3);
-        hr.append(hr4);
-        hr.append(hr5);
-        thead.append(hr);
-
-        for (const row of rows) {
-            let tr = document.createElement('tr');
-            console.log("rending row=", row);
-            for (const [column, value] of Object.entries(grid[row])) {
-                let td = document.createElement('td');
-                td.innerHTML = value;
-
-                td.onclick = (() => {
-                    handle_click(row, column);
-                });
-
-                td.oncontextmenu = (() => {
-                    handle_right_click(row, column);
-                    return false;
-                });
-
-                tbody.appendChild(td);
+        if (user === document.getElementById("user").innerHTML) {
+            let table = document.createElement('table');
+            let thead = document.createElement('thead');
+            let tbody = document.createElement('tbody');
+            table.appendChild(thead);
+            table.appendChild(tbody);
+    
+            let hr = document.createElement('tr');
+            let hr1 = document.createElement('th');
+            let hr2 = document.createElement('th');
+            let hr3 = document.createElement('th');
+            let hr4 = document.createElement('th');
+            let hr5 = document.createElement('th');
+            
+            hr1.innerHTML = 'your bid qty';
+            hr2.innerHTML = 'market bid qty';
+            hr3.innerHTML = 'price';
+            hr4.innerHTML = 'market ask qty';
+            hr5.innerHTML = 'your ask qty';
+            
+            hr.append(hr1);
+            hr.append(hr2);
+            hr.append(hr3);
+            hr.append(hr4);
+            hr.append(hr5);
+            thead.append(hr);
+    
+            for (const row of rows) {
+                let tr = document.createElement('tr');
+                console.log("rending row=", row);
+                for (const [column, value] of Object.entries(grid[row])) {
+                    let td = document.createElement('td');
+                    td.innerHTML = value;
+    
+                    td.onclick = (() => {
+                        handle_click(row, column);
+                    });
+    
+                    td.oncontextmenu = (() => {
+                        handle_right_click(row, column);
+                        return false;
+                    });
+    
+                    tbody.appendChild(td);
+                }
+                tbody.appendChild(tr);
             }
-            tbody.appendChild(tr);
-        }
-
-        let ladder = document.getElementById('ladder');
-        ladder.removeChild(ladder.firstChild);
-        ladder.appendChild(table);
+    
+            let ladder = document.getElementById('ladder');
+            ladder.removeChild(ladder.firstChild);
+            ladder.appendChild(table);
+        } else {
+            console.log("not updating book html because got user=", user);
+        }        
     });
 
     function handle_click(row, column) {

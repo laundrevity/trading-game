@@ -117,6 +117,22 @@ class UnixSocketManager:
                         precision = instrument.precision
                         print(f"TRADE: {iid=}, {precision=}, {trade.volume=}, {trade.price=}, {trade.buyer_account=}, {trade.seller_account=}")
 
+                    case "LEVEL_UPDATE":
+                        update = pb_msg.level_update
+                        instrument = update.instrument
+                        iid = instrument.id
+                        precision = instrument.precision
+                        print(f"LEVEL_UPDATE: {iid=}, {precision=}, {update.account_name=}, {update.volume=}, {update.price=}, {update.side=}")
+                        
+                        print(f"adding order to book", flush=True)
+                        self.gm.current_market_game.add_order(update.account_name, update.price, update.volume, update.side)
+                        
+                        print(f"iterating over {self.gm.players=}")
+                        for player in self.gm.players:
+                            j = self.gm.get_book_json(player)
+                            print(f"emitting book with {j=}", flush=True)
+                            await self.sio.emit("book", j, broadcast=True)
+
                     case _:
                         print("UNRECOGNIZED MSG TYPE IN consume", flush=True)
 

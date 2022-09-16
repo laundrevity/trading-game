@@ -1,4 +1,5 @@
 #include "OrderBook.h"
+#include "../server/UnixConnection.h"
 
 OrderBook::OrderBook(size_t instrument_id_in) : instrument_id(instrument_id_in) {}
 
@@ -109,6 +110,15 @@ void OrderBook::append_order(const std::shared_ptr<Order>& order) {
         }
     }
     orders[order->get_order_id()] = order;
+    if (order->connection) {
+        order->connection->notify_level_update(
+            order->get_instrument_id(),
+            order->get_account_name(),
+            order->get_qty_remaining(),
+            order->get_price(),
+            order->get_side()
+        );
+    }
 }
 
 // check first for crossing (in which case call PriceLevel::consume)
