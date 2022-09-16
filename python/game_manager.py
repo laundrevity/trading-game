@@ -14,8 +14,8 @@ class GameManager:
     def __init__(self, sio):
         self.sio = sio
         self.players = []
-        self.current_width_game = None
-        self.current_market_game = None
+        self.current_width_game: WidthGame = None
+        self.current_market_game: MarketGame = None
         self.browser_ids = {}
         self.credentials = []
     
@@ -27,7 +27,7 @@ class GameManager:
     def initialize_width_game(self):
         self.current_width_game = WidthGame(self.sio, self.players)
     
-    def initialize_market_game(self, open_player, open_bid, open_ask):
+    def initialize_market_game(self, settlement, open_player, open_bid, open_ask):
         self.current_width_game = None
         initial_qty = len(self.players) - 1
         open_book = {
@@ -41,7 +41,8 @@ class GameManager:
             open_book, 
             open_player,
             open_bid,
-            open_ask)
+            open_ask,
+            settlement)
 
     def get_book_json(self, player="conor"):
         if self.current_market_game is not None:

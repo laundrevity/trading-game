@@ -3,6 +3,7 @@ from xml.dom import InvalidModificationErr
 from socketio import AsyncServer
 from enum import Enum
 from typing import List, Dict
+import asyncio
 import json
 
 class MarketGameState(Enum):
@@ -11,7 +12,7 @@ class MarketGameState(Enum):
     OVER = 3
 
 class MarketGame:
-    def __init__(self, sio: AsyncServer, players: List[str], book: Dict, open_player, open_bid, open_ask, precision=2):
+    def __init__(self, sio: AsyncServer, players: List[str], book: Dict, open_player, open_bid, open_ask, settlement, precision=2):
         self.sio = sio
         self.players = players
         self.state = MarketGameState.OPEN
@@ -24,8 +25,11 @@ class MarketGame:
         self.open_mm = open_player
         self.open_bid = int(float(open_bid) * 10**(self.precision))
         self.open_ask = int(float(open_ask) * 10**(self.precision))
-        self.time_left = 300
+        self.settlement = settlement
+        self.time_left = 60
         self.seconds_per_update = 30
+        self.trade_id = 0
+        self.trades = []
 
     async def handle_tick(self):
         print(f"MarketGame.handle_tick", flush=True)
@@ -40,6 +44,34 @@ class MarketGame:
     async def resolve(self):
         payload = {}
         await self.sio.emit("end_market_game", json.dumps({}), broadcast=True)
+
+        rows = [t['id'] for t in self.trades]
+        columns = ['passive user', 'passive side', 'trade qty', 'trade px', 'trade pnl']
+        grid = {}
+        for t in self.trades:
+            if t['passive_side'] == "BUY":
+                pnl = t['qty'] * (self.settlement/(10**self.precision) - t['price'])
+            else:
+                pnl = t['qty'] * (t['price'] - self.settlement)
+
+            grid[t['id']] = {
+                'passive user': t['passive_player'],
+                'passive side': t['passive_side'],
+                'trade qty': t['qty'],
+                'trade px': t['price'],
+                'trade pnl': pnl
+            }
+        
+        payload = {
+            'rows': rows,
+            'columns': columns,
+            'grid': grid
+        }
+
+        await asyncio.sleep(1)
+
+        await self.sio.emit('results', json.dumps(payload), broadcast=True)
+
 
     def get_levels_grid(self, player):
         # first populate rows based on min/max price in book
@@ -142,6 +174,15 @@ class MarketGame:
                 for j in range(len(self.book['bids'][px_str])) 
                 if j not in indices_to_remove
             ]
+
+            self.trades.append({
+                "passive_player": passive_player,
+                "passive_side": "BUY",
+                "qty": qty,
+                "price": price/(10**self.precision),
+                "id": self.trade_id
+            })
+
         else:
             qty_left = qty
             indices_to_remove = []
@@ -160,3 +201,13 @@ class MarketGame:
                 for j in range(len(self.book['asks'][px_str])) 
                 if j not in indices_to_remove
             ]
+
+            self.trades.append({
+                "passive_player": passive_player,
+                "passive_side": "SELL",
+                "qty": qty,
+                "price": price/(10**self.precision),
+                "id": self.trade_id
+            })
+
+        self.trade_id += 1

@@ -46,8 +46,19 @@ net position: <p id="position">0</p>
 <div class="wrapper">
 <div id="ladder">
 </div>
-<div id="trades">
-</div>
+<table id="trades-table">
+<thead> 
+    <tr>
+        <th>passive user</th>
+        <th>passive side</th>
+        <th>trade qty</th>
+        <th>trade px</th>
+        <th>trade pnl</th>
+    </tr>
+</thead>
+<tbody>
+</tbody>
+</table>
 </div>
 
 <script>
@@ -139,14 +150,30 @@ net position: <p id="position">0</p>
         }
     });
 
+
+//    socket.on("trade", (msg) => {
+//        console.log("trade, msg=", msg);
+//        let data = JSON.parse(msg);
+//        let trades = document.getElementById('trades');
+//        let div = document.createElement('div');
+//        div.innerHTML = "[" + data['passive_account'] + "] " + data["passive_side"] + " " + data["volume"] + " @ " + data["price"];
+//        trades.appendChild(div);
+//    });
+
     socket.on("trade", (msg) => {
         console.log("trade, msg=", msg);
         let data = JSON.parse(msg);
-        let trades = document.getElementById('trades');
-        let div = document.createElement('div');
-        div.innerHTML = "[" + data['passive_account'] + "] " + data["passive_side"] + " " + data["volume"] + " @ " + data["price"];
-        trades.appendChild(div);
+        var tbody_ref = document.getElementById('trades-table').getElementsByTagName('tbody')[0];
+        
+        let html_content = "<tr><td>" + data["passive_account"] + "</td><td>" + data["passive_side"] + "</td><td>" + data["volume"] + "</td><td>" + data["price"] + "</td></tr>";
+        var new_row = tbody_ref.insertRow(tbody_ref.rows.length);
+        new_row.innerHTML = html_content;
     });
+
+    socket.on("end_market_game", (msg) => {
+        window.location.href = "{{ url_for('results') }}";
+    });
+
 
     function handle_click(row, column) {
         console.log("handle_click, row=", row, ", column=", column);

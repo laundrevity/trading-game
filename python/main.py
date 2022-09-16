@@ -109,12 +109,17 @@ async def handle_login():
         return jsonify({'success': 'FALSE'})
 
 
+@quart_app.route('/results')
+async def results():
+    return await render_template('results.html', user=current_user.auth_id)
+
+
 @quart_app.route('/test_market')
 @login_required
 async def test_market():
 
     if gm.current_market_game is None:
-        gm.initialize_market_game(current_user.auth_id, 100, 101)
+        gm.initialize_market_game(current_user.auth_id, 627, 100, 101)
         await usm.create_market(0, 2, 627, ["conor", "ronoc"])
 
     for player in gm.players:
@@ -154,7 +159,7 @@ async def handle_bid_submission(sid, msg):
         'initial_ask': data['ask'],
         'initial_mm': data['user']
     }
-    gm.initialize_market_game(data['user'], data['bid'], data['ask'])
+    gm.initialize_market_game(627, data['user'], data['bid'], data['ask'])
     await usm.create_market(0, 2, 627, gm.players)
     # redirect to trading open (all but MM)
     await sio.emit("advance_to_trading_open", json.dumps(payload), broadcast=True)

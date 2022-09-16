@@ -1,0 +1,67 @@
+<html>
+<head>
+    <title>Trading Game Results</title>
+    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"
+        integrity="sha384-fKnu0iswBIqkjxrhQCTZ7qlLHOFEgNkRmK2vaO/LbTZSXdJfAu6ewRBdwHPhBo/H"
+        crossorigin="anonymous"></script>    
+</head>
+<body>
+<p id="user">{{ user }}</p>
+<div id="marked-trades-table">
+</div>
+
+<script>
+    const socket = io();
+
+    socket.on("results", (msg) => {
+        console.log("results, msg=", msg);
+        let data = JSON.parse(msg);
+        let rows = data['rows'];
+        let columns = data['columns'];
+        let grid = data['grid'];
+
+        let table = document.createElement("table");
+        let thead = document.createElement('thead');
+        let tbody = document.createElement('tbody');
+        table.appendChild(thead);
+        table.appendChild(tbody);
+
+        let hr = document.createElement('tr');
+        let hr1 = document.createElement('th');
+        let hr2 = document.createElement('th');
+        let hr3 = document.createElement('th');
+        let hr4 = document.createElement('th');
+        let hr5 = document.createElement('th');
+        
+        hr1.innerHTML = 'passive user';
+        hr2.innerHTML = 'passive side';
+        hr3.innerHTML = 'trade qty';
+        hr4.innerHTML = 'trade px';
+        hr5.innerHTML = 'trade pnl';
+
+        hr.append(hr1);
+        hr.append(hr2);
+        hr.append(hr3);
+        hr.append(hr4);
+        hr.append(hr5);
+        thead.append(hr);
+
+        for (const row of rows) {
+            let tr = document.createElement('tr');
+            for  (const [column, value] of Object.entries(grid[row])) {
+                let td = document.createElement('td');
+                td.innerHTML = value;
+                tbody.appendChild(td);
+            }
+            tbody.appendChild(tr);
+        }
+
+        let marked_trades_table = document.getElementById('marked-trades-table');
+        marked_trades_table.removeChild(marked_trades_table.firstChild);
+        marked_trades_table.appendChild(table);
+    });
+
+</script>
+
+</body>
+</html>

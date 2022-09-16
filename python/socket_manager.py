@@ -241,6 +241,8 @@ class UnixSocketManager:
         open_bid = self.gm.current_market_game.open_bid
         open_ask = self.gm.current_market_game.open_ask
 
+        print(f"{open_mm=}, {open_bid=}, {open_ask=}", flush=True)
+
         if data["side"] == "BUY":
             mm_insert_msg = pb2.InsertOrder(
                 request_id=self.request_id,
