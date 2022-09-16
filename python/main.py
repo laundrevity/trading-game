@@ -36,6 +36,10 @@ async def tick():
             await gm.current_width_game.handle_tick()
             data['width_time_left'] = gm.current_width_game.time_left
 
+        if gm.current_market_game is not None:
+            await gm.current_market_game.handle_tick()
+            data['market_time_left'] = gm.current_market_game.time_left
+
         # instead, send book when we get MARKET_CREATED message from game server
         # if gm.current_market_game is not None:
         #     if not gm.current_market_game.unsent:

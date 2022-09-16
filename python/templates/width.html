@@ -12,9 +12,9 @@
 <p id="clock"></p>
 <p id="user" style="display: none">{{ user }}</p>
 <br> <br> <br>
-Time remaining: <p id="time_left"></p> <br>
-Quantity to trade: <p id="qty_desc">number of birds / number of people</p> <br>
-Current minimum width: <p id="best_width"></p> - <p id="best_name"></p>
+time remaining: <p id="time_left"></p> <br>
+quantity to trade: <p id="qty_desc">number of birds / number of people</p> <br>
+current minimum width: <p id="best_width"></p> - <p id="best_name"></p>
 
 <form action="" method="" class="width-form">
     <div class="width-form">
@@ -67,7 +67,7 @@ Current minimum width: <p id="best_width"></p> - <p id="best_name"></p>
         name_holder.innerHTML = d["player"];
     });
 
-    socket.on("end_game", (msg) => {
+    socket.on("end_width_game", (msg) => {
         console.log("end game, msg=", msg);
         let d = JSON.parse(msg);
         let user_name = document.getElementById("user").innerHTML;

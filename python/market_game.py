@@ -3,6 +3,7 @@ from xml.dom import InvalidModificationErr
 from socketio import AsyncServer
 from enum import Enum
 from typing import List, Dict
+import json
 
 class MarketGameState(Enum):
     OPEN = 1
@@ -23,6 +24,22 @@ class MarketGame:
         self.open_mm = open_player
         self.open_bid = int(float(open_bid) * 10**(self.precision))
         self.open_ask = int(float(open_ask) * 10**(self.precision))
+        self.time_left = 300
+        self.seconds_per_update = 30
+
+    async def handle_tick(self):
+        print(f"MarketGame.handle_tick", flush=True)
+        if self.state != MarketGameState.OVER:
+            if self.time_left == 1:
+                self.state = MarketGameState.OVER
+                await self.resolve()
+            else:
+                self.time_left -= 1
+                print(f"{self.time_left=}", flush=True)
+    
+    async def resolve(self):
+        payload = {}
+        await self.sio.emit("end_market_game", json.dumps({}), broadcast=True)
 
     def get_levels_grid(self, player):
         # first populate rows based on min/max price in book

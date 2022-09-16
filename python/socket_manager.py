@@ -123,7 +123,17 @@ class UnixSocketManager:
                         for player in self.gm.players:
                             j = self.gm.get_book_json(player)
                             #print(f"emitting book with {j=}", flush=True)
-                            await self.sio.emit("book", j, broadcast=True)                        
+                            await self.sio.emit("book", j, broadcast=True)
+
+                            passive_side_str = "BUY" if trade.passive_side == 0 else "SELL"
+
+                        trade_data = {
+                            "volume": trade.volume,
+                            "price": trade.price,
+                            "passive_account": trade.passive_account,
+                            "passive_side": passive_side_str
+                        }                    
+                        await self.sio.emit("trade", json.dumps(trade_data), broadcast=True)
 
                     case "LEVEL_UPDATE":
                         update = pb_msg.level_update

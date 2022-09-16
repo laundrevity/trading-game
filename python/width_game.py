@@ -55,4 +55,4 @@ class WidthGame:
             "winner_user": self.best_player,
             "winner_width": self.best_width    
         }
-        await self.sio.emit("end_game", json.dumps(payload), broadcast=True)
+        await self.sio.emit("end_width_game", json.dumps(payload), broadcast=True)

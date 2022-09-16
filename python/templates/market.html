@@ -24,6 +24,12 @@
             background-color: #00d9ff;
             color: rgb(0, 0, 0);
         }
+
+        .wrapper {
+            display: flex;
+            justify-content: space-between;
+        }
+
     </style>
     <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"
         integrity="sha384-fKnu0iswBIqkjxrhQCTZ7qlLHOFEgNkRmK2vaO/LbTZSXdJfAu6ewRBdwHPhBo/H"
@@ -33,19 +39,30 @@
 
 <p id="clock"></p>
 <p id="user" style="display: none">{{ user }}</p>
+time remaining:
+<p id="time_left"></p>
 net position: <p id="position">0</p>
 <br><br>
+<div class="wrapper">
 <div id="ladder">
+</div>
+<div id="trades">
+</div>
 </div>
 
 <script>
     const socket = io();
 
     socket.on("tick", (msg) => {
-        console.log("tick, session id:", socket.io.engine.id);
+        console.log("tick, msg=", msg);
         let data = JSON.parse(msg);
         let clock = document.getElementById("clock");
         clock.innerHTML = data["dt"];
+
+        if ("market_time_left" in data) {
+            let time_ele = document.getElementById("time_left");
+            time_ele.innerHTML = data["market_time_left"];
+        }
     });
 
     socket.on("book", (msg) => {
@@ -120,6 +137,15 @@ net position: <p id="position">0</p>
             let pos_ele = document.getElementById("position");
             pos_ele.innerHTML = data['position'];
         }
+    });
+
+    socket.on("trade", (msg) => {
+        console.log("trade, msg=", msg);
+        let data = JSON.parse(msg);
+        let trades = document.getElementById('trades');
+        let div = document.createElement('div');
+        div.innerHTML = "[" + data['passive_account'] + "] " + data["passive_side"] + " " + data["volume"] + " @ " + data["price"];
+        trades.appendChild(div);
     });
 
     function handle_click(row, column) {
