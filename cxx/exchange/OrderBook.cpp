@@ -1,7 +1,11 @@
 #include "OrderBook.h"
 #include "../server/UnixConnection.h"
 
-OrderBook::OrderBook(size_t instrument_id_in) : instrument_id(instrument_id_in) {}
+OrderBook::OrderBook(size_t instrument_id_in, Price settle) 
+: instrument_id(instrument_id_in), settlement_value(settle) {}
+
+OrderBook::OrderBook(size_t instrument_id_in)
+: instrument_id(instrument_id_in), settlement_value(Price(0)) {}
 
 bool OrderBook::cancel_order(size_t order_id) {
     auto it = orders.find(order_id);

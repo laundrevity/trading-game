@@ -5,6 +5,7 @@
 
 class OrderBook {
 public:
+    OrderBook(size_t instrument_id_in, Price settle);
     OrderBook(size_t instrument_id_in);
 
     bool cancel_order(size_t order_id);
@@ -54,4 +55,5 @@ private:
     // whenever inserting or cancelling orders
     Price best_bid{Limit::MIN};
     Price best_ask{Limit::MAX};
+    Price settlement_value;
 };

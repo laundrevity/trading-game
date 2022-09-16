@@ -62,7 +62,8 @@ message Trade {
 
 message CreateMarket {
     required Instrument instrument = 1;
-    repeated string user_name = 2;
+    required int64 settlement_price = 2;
+    repeated string user_name = 3;
 }
 
 message CreateMarketReply {

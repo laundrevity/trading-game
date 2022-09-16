@@ -150,11 +150,12 @@ void UnixConnection::handle_read(const boost::system::error_code& error, size_t 
                             auto instrument = create_message.instrument();
                             size_t instrument_id = instrument.id();
                             size_t precision = instrument.precision();
+                            auto settlement_price = Price(create_message.settlement_price());
                             std::cout << "iid=" << instrument_id << ", precision=" << precision << std::endl;
 
                             // TODO: check to see if the iid already exists in exchange book_map
 
-                            auto book = std::make_shared<OrderBook>(instrument_id);
+                            auto book = std::make_shared<OrderBook>(instrument_id, settlement_price);
                             exchange->register_book(book);
                             
                             for (auto& user: create_message.user_name()) {

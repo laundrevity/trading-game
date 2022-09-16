@@ -111,7 +111,7 @@ async def test_market():
 
     if gm.current_market_game is None:
         gm.initialize_market_game(current_user.auth_id, 100, 101)
-        await usm.create_market(0, 2, ["conor", "ronoc"])
+        await usm.create_market(0, 2, 627, ["conor", "ronoc"])
 
     for player in gm.players:
         await sio.emit("book", gm.get_book_json(player), broadcast=True)
@@ -151,7 +151,7 @@ async def handle_bid_submission(sid, msg):
         'initial_mm': data['user']
     }
     gm.initialize_market_game(data['user'], data['bid'], data['ask'])
-    await usm.create_market(0, 2, gm.players)
+    await usm.create_market(0, 2, 627, gm.players)
     # redirect to trading open (all but MM)
     await sio.emit("advance_to_trading_open", json.dumps(payload), broadcast=True)
     # wait a second for folks to get redirected

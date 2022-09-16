@@ -157,9 +157,9 @@ class UnixSocketManager:
             await self.writer.drain()
             self.request_id += 1
 
-    async def create_market(self, instrument_id, precision, user_names):
+    async def create_market(self, instrument_id, precision, settlement_price, user_names):
         instrument = pb2.Instrument(id=instrument_id, precision=precision)
-        create_msg = pb2.CreateMarket(instrument=instrument)
+        create_msg = pb2.CreateMarket(instrument=instrument, settlement_price=settlement_price)
         for user_name in user_names:
             create_msg.user_name.append(user_name)
         message = pb2.Message(type=['CREATE_MARKET'], create_market=create_msg)
