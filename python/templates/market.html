@@ -33,6 +33,7 @@
 
 <p id="clock"></p>
 <p id="user" style="display: none">{{ user }}</p>
+net position: <p id="position">0</p>
 <br><br>
 <div id="ladder">
 </div>
@@ -109,6 +110,16 @@
         } else {
             console.log("not updating book html because got user=", user);
         }        
+    });
+
+    socket.on("position", (msg) => {
+        console.log("position, msg=", msg);
+        let data = JSON.parse(msg);
+        let user = data['player'];
+        if (user === document.getElementById("user").innerHTML) {
+            let pos_ele = document.getElementById("position");
+            pos_ele.innerHTML = data['position'];
+        }
     });
 
     function handle_click(row, column) {

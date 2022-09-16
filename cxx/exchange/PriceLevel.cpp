@@ -90,7 +90,9 @@ bool PriceLevel::consume(const std::shared_ptr<Order>& market) {
                 limit->get_price(), 
                 buyer->get_account_name(), 
                 seller->get_account_name(),
-                Side::SELL
+                Side::SELL,
+                buyer->get_position(iid),
+                seller->get_position(iid)
             );
         }
         
@@ -136,7 +138,9 @@ bool PriceLevel::consume(const std::shared_ptr<Order>& market) {
                 limit->get_price(), 
                 buyer->get_account_name(), 
                 seller->get_account_name(),
-                Side::BUY
+                Side::BUY,
+                buyer->get_position(iid),
+                seller->get_position(iid)
             );
         }
 

@@ -1,8 +1,9 @@
 from game_manager import GameManager
+import common_pb2 as pb2
 import socketio
 import asyncio
 import struct
-import common_pb2 as pb2
+import json
 
 
 class UnixSocketManager:
@@ -117,7 +118,7 @@ class UnixSocketManager:
                         precision = instrument.precision
                         print(f"TRADE: {iid=}, {precision=}, {trade.volume=}, {trade.price=}, {trade.passive_account=}, {trade.passive_side=}")
                         self.gm.current_market_game.process_trade(trade.passive_account, trade.price, trade.volume, trade.passive_side)
-                        
+
                         print(f"iterating over {self.gm.players=}")
                         for player in self.gm.players:
                             j = self.gm.get_book_json(player)
@@ -139,6 +140,18 @@ class UnixSocketManager:
                             j = self.gm.get_book_json(player)
                             #print(f"emitting book with {j=}", flush=True)
                             await self.sio.emit("book", j, broadcast=True)
+
+                    case "POSITION_UPDATE":
+                        update = pb_msg.position_update
+                        instrument = update.instrument
+                        iid = instrument.id
+                        print(f"POSITION_UPDATE: {iid=}, {update.account_name=}, {update.position=}", flush=True)
+                        self.gm.current_market_game.positions[update.account_name] = update.position
+                        payload = {
+                            'player': update.account_name,
+                            'position': update.position
+                        }
+                        await self.sio.emit("position", json.dumps(payload), broadcast=True)
 
                     case _:
                         print("UNRECOGNIZED MSG TYPE IN consume", flush=True)

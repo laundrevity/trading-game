@@ -19,6 +19,7 @@ class MarketGame:
         self.columns = ['your bid qty', 'market bid qty', 'price', 'market ask qty', 'your ask qty']
         self.unsent = True
         self.precision = precision
+        self.positions = {p: 0 for p in self.players}
 
     def get_levels_grid(self, player):
         # first populate rows based on min/max price in book
@@ -95,7 +96,7 @@ class MarketGame:
                     for j in range(len(self.book['asks'][px_str]))
                     if j not in indices_to_remove
                 ]
-                
+
             else:
                 if px_str not in self.book['asks']:
                     self.book['asks'][px_str] = []

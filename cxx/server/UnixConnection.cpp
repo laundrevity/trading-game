@@ -202,7 +202,8 @@ void UnixConnection::handle_read(const boost::system::error_code& error, size_t 
     );
 }
 
-void UnixConnection::notify_fill(size_t instrument_id, size_t volume, Price price, std::string buyer, std::string seller, Side passive_side) {
+void UnixConnection::notify_fill(
+    size_t instrument_id, size_t volume, Price price, std::string buyer, std::string seller, Side passive_side, int buyer_pos, int seller_pos) {
     ProtoCommon::Message trade;
     trade.add_type(ProtoCommon::TRADE);
     trade.mutable_trade()->mutable_instrument()->set_id(instrument_id);
@@ -228,6 +229,36 @@ void UnixConnection::notify_fill(size_t instrument_id, size_t volume, Price pric
     std::string trade_full_string(header_bytes, 8);
     trade_full_string += trade_string;
     write(trade_full_string);
+
+    // now also write position update messages to each player
+    ProtoCommon::Message buyer_update;
+    buyer_update.add_type(ProtoCommon::POSITION_UPDATE);
+    buyer_update.mutable_position_update()->mutable_instrument()->set_id(instrument_id);
+    buyer_update.mutable_position_update()->mutable_instrument()->set_precision(price.get_precision());
+    buyer_update.mutable_position_update()->set_account_name(buyer);
+    buyer_update.mutable_position_update()->set_position(buyer_pos);
+    std::string buyer_string;
+    buyer_update.SerializeToString(&buyer_string);
+    const auto buyer_header = BuildHeader(MessageKind::BUSINESS, buyer_string);
+    const char* buyer_header_bytes = reinterpret_cast<const char*>(&buyer_header);
+    std::string buyer_full_string(buyer_header_bytes, 8);
+    buyer_full_string += buyer_string;
+    write(buyer_full_string);
+
+    ProtoCommon::Message seller_update;
+    seller_update.add_type(ProtoCommon::POSITION_UPDATE);
+    seller_update.mutable_position_update()->mutable_instrument()->set_id(instrument_id);
+    seller_update.mutable_position_update()->mutable_instrument()->set_precision(price.get_precision());
+    seller_update.mutable_position_update()->set_account_name(seller);
+    seller_update.mutable_position_update()->set_position(seller_pos);
+    std::string seller_string;
+    seller_update.SerializeToString(&seller_string);
+    const auto seller_header = BuildHeader(MessageKind::BUSINESS, seller_string);
+    const char* seller_header_bytes = reinterpret_cast<const char*>(&seller_header);
+    std::string seller_full_string(seller_header_bytes, 8);
+    seller_full_string += seller_string;
+    write(seller_full_string);
+
 }
 
 void UnixConnection::notify_level_update(size_t iid, std::string account, size_t volume, Price price, Side side) {
