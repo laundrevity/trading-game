@@ -171,15 +171,24 @@ void UnixConnection::handle_read(const boost::system::error_code& error, size_t 
     );
 }
 
-void UnixConnection::notify_fill(size_t instrument_id, size_t volume, Price price, std::string buyer, std::string seller) {
+void UnixConnection::notify_fill(size_t instrument_id, size_t volume, Price price, std::string buyer, std::string seller, Side passive_side) {
     ProtoCommon::Message trade;
     trade.add_type(ProtoCommon::TRADE);
     trade.mutable_trade()->mutable_instrument()->set_id(instrument_id);
     trade.mutable_trade()->mutable_instrument()->set_precision(price.get_precision());
     trade.mutable_trade()->set_volume(volume);
     trade.mutable_trade()->set_price(price.get_int());
-    trade.mutable_trade()->set_buyer_account(buyer);
-    trade.mutable_trade()->set_seller_account(seller);
+
+    if (passive_side == Side::BUY) {
+        trade.mutable_trade()->set_passive_account(buyer);
+        trade.mutable_trade()->set_passive_side(ProtoCommon::BUY);
+    } else {
+        trade.mutable_trade()->set_passive_account(seller);
+        trade.mutable_trade()->set_passive_side(ProtoCommon::SELL);
+    }
+
+    // trade.mutable_trade()->set_buyer_account(buyer);
+    // trade.mutable_trade()->set_seller_account(seller);
 
     std::string trade_string;
     trade.SerializeToString(&trade_string);

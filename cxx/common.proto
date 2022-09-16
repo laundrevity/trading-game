@@ -56,8 +56,8 @@ message Trade {
     required Instrument instrument = 1;
     required uint64 volume = 2;
     required int64 price = 3;
-    required string buyer_account = 4;
-    required string seller_account = 5;
+    required string passive_account = 4;
+    required Side passive_side = 5;
 }
 
 message CreateMarket {

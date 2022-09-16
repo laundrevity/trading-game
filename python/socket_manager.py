@@ -115,7 +115,14 @@ class UnixSocketManager:
                         instrument = trade.instrument
                         iid = instrument.id
                         precision = instrument.precision
-                        print(f"TRADE: {iid=}, {precision=}, {trade.volume=}, {trade.price=}, {trade.buyer_account=}, {trade.seller_account=}")
+                        print(f"TRADE: {iid=}, {precision=}, {trade.volume=}, {trade.price=}, {trade.passive_account=}, {trade.passive_side=}")
+                        self.gm.current_market_game.process_trade(trade.passive_account, trade.price, trade.volume, trade.passive_side)
+                        
+                        print(f"iterating over {self.gm.players=}")
+                        for player in self.gm.players:
+                            j = self.gm.get_book_json(player)
+                            #print(f"emitting book with {j=}", flush=True)
+                            await self.sio.emit("book", j, broadcast=True)                        
 
                     case "LEVEL_UPDATE":
                         update = pb_msg.level_update
@@ -130,7 +137,7 @@ class UnixSocketManager:
                         print(f"iterating over {self.gm.players=}")
                         for player in self.gm.players:
                             j = self.gm.get_book_json(player)
-                            print(f"emitting book with {j=}", flush=True)
+                            #print(f"emitting book with {j=}", flush=True)
                             await self.sio.emit("book", j, broadcast=True)
 
                     case _:

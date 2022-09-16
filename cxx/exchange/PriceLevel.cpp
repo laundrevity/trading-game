@@ -84,7 +84,14 @@ bool PriceLevel::consume(const std::shared_ptr<Order>& market) {
         
         // notify fills
         if (limit->connection) {
-            limit->connection->notify_fill(iid, fill_qty, limit->get_price(), buyer->get_account_name(), seller->get_account_name());
+            limit->connection->notify_fill(
+                iid, 
+                fill_qty, 
+                limit->get_price(), 
+                buyer->get_account_name(), 
+                seller->get_account_name(),
+                Side::SELL
+            );
         }
         
 
@@ -122,6 +129,16 @@ bool PriceLevel::consume(const std::shared_ptr<Order>& market) {
         seller->set_position(iid, seller->get_position(iid) - fill_qty);
 
         // notify fills
+        if (limit->connection) {
+            limit->connection->notify_fill(
+                iid, 
+                fill_qty, 
+                limit->get_price(), 
+                buyer->get_account_name(), 
+                seller->get_account_name(),
+                Side::BUY
+            );
+        }
 
         return true;
     }

@@ -145,6 +145,7 @@ bool OrderBook::insert_order(const std::shared_ptr<Order>& order) {
                     if (top_ask_level->empty()) {
                         ask_levels.erase(it);
                         recalculate_top_ask();
+
                         // check if order has qty left after depleting level
                         if (order->get_qty_remaining() > 0) {
                             append_order(order);
@@ -179,6 +180,7 @@ bool OrderBook::insert_order(const std::shared_ptr<Order>& order) {
                     if (top_bid_level->empty()) {
                         bid_levels.erase(it);
                         recalculate_top_bid();
+
                         // check if order has qty left after depleting level
                         if (order->get_qty_remaining() > 0) {
                             append_order(order);

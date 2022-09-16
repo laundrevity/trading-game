@@ -71,3 +71,42 @@ class MarketGame:
             if px_str not in self.book['asks']:
                 self.book['asks'][px_str] = []
             self.book['asks'][px_str].append([player, qty])
+
+    def process_trade(self, passive_player, price, qty, passive_side):
+        px_str = f'{(price/(10**self.precision)):.2f}'
+        if passive_side == 0:
+            qty_left = qty
+            indices_to_remove = []
+            for i, x in enumerate(self.book['bids'][px_str]):
+                if qty_left > 0:
+                    u, q = x[0], x[1]
+                    if u == passive_player:
+                        if q > 0:
+                            if qty_left < q:
+                                x[1] -= qty_left
+                            else:
+                                indices_to_remove.append(i)
+                            qty_left -= q
+            self.book['bids'][px_str] = [
+                self.book['bids'][px_str][j] 
+                for j in range(len(self.book['bids'][px_str])) 
+                if j not in indices_to_remove
+            ]
+        else:
+            qty_left = qty
+            indices_to_remove = []
+            for i, x in enumerate(self.book['asks'][px_str]):
+                if qty_left > 0:
+                    u, q = x[0], x[1]
+                    if u == passive_player:
+                        if q > 0:
+                            if qty_left < q:
+                                x[1] -= qty_left
+                            else:
+                                indices_to_remove.append(i)
+                            qty_left -= q
+            self.book['asks'][px_str] = [
+                self.book['asks'][px_str][j] 
+                for j in range(len(self.book['asks'][px_str])) 
+                if j not in indices_to_remove
+            ]
