@@ -73,7 +73,7 @@ void UnixConnection::handle_read(const boost::system::error_code& error, size_t 
                                     size_t next_order_id = exchange->get_book_order_id(instrument_id);
                                     auto order = std::make_shared<Order>(
                                         next_order_id,
-                                        account_name,
+                                        account_opt.value(),
                                         instrument_id,
                                         Price(insert_message.price()),
                                         insert_message.volume(),

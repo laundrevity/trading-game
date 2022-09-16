@@ -1,6 +1,7 @@
 #pragma once
 #include "Account.h"
 #include "Price.h"
+#include <memory>
 
 enum class Side{
     BUY = 0,
@@ -9,14 +10,18 @@ enum class Side{
 
 class Order {
 public:
-    Order(size_t order_id, std::string account_name, size_t instrument_id, Price price, size_t qty, Side side);
+    Order(size_t order_id, const std::shared_ptr<Account>& account, size_t instrument_id, Price price, size_t qty, Side side);
 
     size_t get_order_id() const {
         return order_id;
     }
 
+    std::shared_ptr<Account> get_account() const {
+        return account;
+    }
+
     std::string get_account_name() const {
-        return account_name;
+        return account->get_account_name();
     }
 
     size_t get_instrument_id() const {
@@ -41,7 +46,7 @@ public:
 
 private:
     size_t order_id;
-    std::string account_name;
+    std::shared_ptr<Account> account;
     size_t instrument_id;
     Price price;
     size_t initial_qty;

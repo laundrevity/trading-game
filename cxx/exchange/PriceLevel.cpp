@@ -49,8 +49,8 @@ bool PriceLevel::consume(const std::shared_ptr<Order>& market) {
     auto limit = get_top_order();
 
     if (market->get_side() == Side::BUY) {
-        auto buyer = market->get_account_name();
-        auto seller = limit->get_account_name();
+        auto buyer = market->get_account();
+        auto seller = limit->get_account();
         // order verification (eg checking balance) would occur here
         size_t limit_qty = limit->get_qty_remaining();
         size_t market_qty = market->get_qty_remaining();
@@ -72,15 +72,20 @@ bool PriceLevel::consume(const std::shared_ptr<Order>& market) {
         }
 
         // update account balances (use account pointers in orders??)
-        // double tx_val = limit->get_price().get() * fill_qty;
-        // buyer_account->debit(tx_val);
-        // seller_account->credit(tx_val);
-        // update positions for accounts
+        double tx_val = limit->get_price().get() * fill_qty;
+        buyer->debit(tx_val);
+        seller->credit(tx_val);
+
+        // update account positions
+        size_t iid = market->get_instrument_id();
+        buyer->set_position(iid, buyer->get_position(iid) + fill_qty);
+        seller->set_position(iid, seller->get_position(iid) - fill_qty);
+        
         // notify fills
         return true;
     } else {
-        auto seller = market->get_account_name();
-        auto buyer = limit->get_account_name();
+        auto seller = market->get_account();
+        auto buyer = limit->get_account();
         size_t limit_qty = limit->get_qty_remaining();
         size_t market_qty = market->get_qty_remaining();
         size_t fill_qty = std::min(limit_qty, market_qty);
@@ -99,6 +104,18 @@ bool PriceLevel::consume(const std::shared_ptr<Order>& market) {
             market->partially_fill(fill_qty);
             total_qty -= fill_qty;
         }
+
+        // update account balances (use account pointers in orders??)
+        double tx_val = limit->get_price().get() * fill_qty;
+        buyer->debit(tx_val);
+        seller->credit(tx_val);
+
+        // update account positions
+        size_t iid = market->get_instrument_id();
+        buyer->set_position(iid, buyer->get_position(iid) + fill_qty);
+        seller->set_position(iid, seller->get_position(iid) - fill_qty);
+
+        // notify fills
 
         return true;
     }

@@ -11,10 +11,11 @@ TEST(ExchangeTests, SimpleRegistrationAndInsert) {
     ASSERT_TRUE(exchange.get_book(0));
     ASSERT_TRUE(exchange.get_account("conor"));
 
-    auto order = std::make_shared<Order>(0, "conor", 0, Price(100), 100, Side::BUY);
+    auto order = std::make_shared<Order>(0, account, 0, Price(100), 100, Side::BUY);
     ASSERT_TRUE(exchange.process_order(order));
 
-    auto bad_order = std::make_shared<Order>(1, "ronoc", 0, Price(100), 100, Side::BUY);
+    auto bad_account = std::make_shared<Account>("ronoc", 0.0);
+    auto bad_order = std::make_shared<Order>(1, bad_account, 0, Price(100), 100, Side::BUY);
     ASSERT_FALSE(exchange.process_order(bad_order));
 }
 
@@ -30,8 +31,8 @@ TEST(ExchangeTests, PositionOnTrade) {
     ASSERT_EQ(account_1->get_position(0), 0);
     ASSERT_EQ(account_2->get_position(0), 0);
 
-    auto bid = std::make_shared<Order>(0, "conor", 0, Price(100), 100, Side::BUY);
-    auto ask = std::make_shared<Order>(1, "ronoc", 0, Price(100), 100, Side::SELL);
+    auto bid = std::make_shared<Order>(0, account_1, 0, Price(100), 100, Side::BUY);
+    auto ask = std::make_shared<Order>(1, account_2, 0, Price(100), 100, Side::SELL);
     ASSERT_TRUE(exchange.process_order(bid));
     ASSERT_TRUE(exchange.process_order(ask));
 

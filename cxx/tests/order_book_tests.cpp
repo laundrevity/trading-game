@@ -3,8 +3,9 @@
 
 TEST(OrderBookTests, SimpleAppend) {
     auto book = OrderBook(0);
-    auto bid_order = std::make_shared<Order>(0, "conor", 0, Price(100), 100, Side::BUY);
-    auto ask_order = std::make_shared<Order>(1, "conor", 0, Price(150), 100, Side::SELL);
+    auto account = std::make_shared<Account>("conor", 0.0);
+    auto bid_order = std::make_shared<Order>(0, account, 0, Price(100), 100, Side::BUY);
+    auto ask_order = std::make_shared<Order>(1, account, 0, Price(150), 100, Side::SELL);
     
     ASSERT_EQ(book.get_top_bid(), Price(Limit::MIN));
     ASSERT_EQ(book.get_top_ask(), Price(Limit::MAX));
@@ -18,8 +19,9 @@ TEST(OrderBookTests, SimpleAppend) {
 
 TEST(OrderBookTests, SimpleCancel) {
     auto book = OrderBook(0);
-    auto bid_order = std::make_shared<Order>(0, "conor", 0, Price(100), 100, Side::BUY);
-    auto ask_order = std::make_shared<Order>(1, "conor", 0, Price(150), 100, Side::SELL);
+    auto account = std::make_shared<Account>("conor", 0.0);
+    auto bid_order = std::make_shared<Order>(0, account, 0, Price(100), 100, Side::BUY);
+    auto ask_order = std::make_shared<Order>(1, account, 0, Price(150), 100, Side::SELL);
     book.append_order(bid_order);
     book.append_order(ask_order);
 
@@ -32,20 +34,22 @@ TEST(OrderBookTests, SimpleCancel) {
 
 TEST(OrderBookTests, SimpleInsert) {
     auto book = OrderBook(0);
-    auto bid_order = std::make_shared<Order>(0, "conor", 0, Price(100), 100, Side::BUY);
+    auto account = std::make_shared<Account>("conor", 0.0);
+    auto bid_order = std::make_shared<Order>(0, account, 0, Price(100), 100, Side::BUY);
     ASSERT_TRUE(book.insert_order(bid_order));
     ASSERT_EQ(book.get_top_bid(), bid_order->get_price());
     
-    auto ask_order = std::make_shared<Order>(1, "conor", 0, Price(150), 100, Side::SELL);
+    auto ask_order = std::make_shared<Order>(1, account, 0, Price(150), 100, Side::SELL);
     ASSERT_TRUE(book.insert_order(ask_order));
     ASSERT_EQ(book.get_top_ask(), ask_order->get_price());
 }
 
 TEST(OrderBookTests, PartialCrossingInsert) {
     auto book = OrderBook(0);
-    auto bid_order_1 = std::make_shared<Order>(0, "conor", 0, Price(100), 100, Side::BUY);
-    auto bid_order_2 = std::make_shared<Order>(2, "conor", 0, Price(155), 50, Side::BUY);
-    auto ask_order = std::make_shared<Order>(1, "conor", 0, Price(150), 100, Side::SELL);
+    auto account = std::make_shared<Account>("conor", 0.0);
+    auto bid_order_1 = std::make_shared<Order>(0, account, 0, Price(100), 100, Side::BUY);
+    auto bid_order_2 = std::make_shared<Order>(2, account, 0, Price(155), 50, Side::BUY);
+    auto ask_order = std::make_shared<Order>(1, account, 0, Price(150), 100, Side::SELL);
 
     ASSERT_TRUE(book.insert_order(bid_order_1));
     ASSERT_TRUE(book.insert_order(ask_order));
@@ -62,9 +66,10 @@ TEST(OrderBookTests, PartialCrossingInsert) {
 
 TEST(OrderBookTests, ReplaceCrossingInsert) {
     auto book = OrderBook(0);
-    auto bid_order_1 = std::make_shared<Order>(0, "conor", 0, Price(100), 100, Side::BUY);
-    auto bid_order_2 = std::make_shared<Order>(2, "conor", 0, Price(155), 150, Side::BUY);
-    auto ask_order = std::make_shared<Order>(1, "conor", 0, Price(150), 100, Side::SELL);
+    auto account = std::make_shared<Account>("conor", 0.0);
+    auto bid_order_1 = std::make_shared<Order>(0, account, 0, Price(100), 100, Side::BUY);
+    auto bid_order_2 = std::make_shared<Order>(2, account, 0, Price(155), 150, Side::BUY);
+    auto ask_order = std::make_shared<Order>(1, account, 0, Price(150), 100, Side::SELL);
 
     ASSERT_TRUE(book.insert_order(bid_order_1));
     ASSERT_TRUE(book.insert_order(ask_order));
@@ -81,8 +86,9 @@ TEST(OrderBookTests, ReplaceCrossingInsert) {
 
 TEST(OrderBookTests, ImproveBestAsk) {
     auto book = OrderBook(0);
-    auto ask_order_1 = std::make_shared<Order>(0, "conor", 0, Price(10500), 1, Side::SELL);
-    auto ask_order_2 = std::make_shared<Order>(1, "conor", 0, Price(10000), 1, Side::SELL);
+    auto account = std::make_shared<Account>("conor", 0.0);
+    auto ask_order_1 = std::make_shared<Order>(0, account, 0, Price(10500), 1, Side::SELL);
+    auto ask_order_2 = std::make_shared<Order>(1, account, 0, Price(10000), 1, Side::SELL);
     
     ASSERT_TRUE(book.insert_order(ask_order_1));
     ASSERT_TRUE(book.insert_order(ask_order_2));

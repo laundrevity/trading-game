@@ -41,7 +41,7 @@ bool Exchange::process_order(const std::shared_ptr<Order>& order) {
     size_t iid = order->get_instrument_id();
     // ++book_order_ids[iid]; 
     // if not here, then who / what is updating these auto-incrementing order ids? 
-    // ExchangeServer?
+    // GameServer
     
     auto book_cnt = get_book(iid);
     if (not book_cnt) {
