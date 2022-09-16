@@ -78,3 +78,12 @@ TEST(OrderBookTests, ReplaceCrossingInsert) {
     auto top_bid_level = book.get_bid_levels()[bid_px_int];
     ASSERT_EQ(top_bid_level->get_total_qty(), 50);
 }
+
+TEST(OrderBookTests, ImproveBestAsk) {
+    auto book = OrderBook(0);
+    auto ask_order_1 = std::make_shared<Order>(0, "conor", 0, Price(10500), 1, Side::SELL);
+    auto ask_order_2 = std::make_shared<Order>(1, "conor", 0, Price(10000), 1, Side::SELL);
+    
+    ASSERT_TRUE(book.insert_order(ask_order_1));
+    ASSERT_TRUE(book.insert_order(ask_order_2));
+}

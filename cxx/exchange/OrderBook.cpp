@@ -152,7 +152,7 @@ bool OrderBook::insert_order(const std::shared_ptr<Order>& order) {
             }
         } else {
             // check if the SELL order is in cross
-            if (order->get_price() <= best_ask) {
+            if (order->get_price() <= best_bid) {
                 auto it = bid_levels.find(best_bid.get_int());
                 if (it == bid_levels.end()) {
                     std::cout << "missing price level. ask Conor. bankrupt" << std::endl;
