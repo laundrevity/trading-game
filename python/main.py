@@ -82,7 +82,7 @@ async def market():
 @quart_app.route('/open')
 @login_required
 async def open_route():
-    return await render_template('open.html')
+    return await render_template('open.html', user=current_user.auth_id)
 
 
 @quart_app.route('/login')
@@ -166,8 +166,14 @@ async def handle_bid_submission(sid, msg):
 async def handle_open_side(sid, msg):
     print(f"handle_open_side for {msg=} from {sid=}", flush=True)
     data = json.loads(msg)
+
+    # send both MM and this crossing order to matcher, to simulate market-at-open orders
+
+
+    
     await sio.emit("advance_to_market", json.dumps({}))
     await asyncio.sleep(1)
+    await usm.handle_open_side(data)
     # broadcast the initial book
     for player in gm.players:
         await sio.emit("book", gm.get_book_json(player), broadcast=True)

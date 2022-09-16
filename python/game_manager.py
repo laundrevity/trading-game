@@ -35,7 +35,13 @@ class GameManager:
             'asks': {f'{open_ask:.2f}': [(open_player, 0)]}
         }
         print(f"initializing market game with book={open_book}", flush=True)
-        self.current_market_game = MarketGame(self.sio, self.players, open_book)
+        self.current_market_game = MarketGame(
+            self.sio, 
+            self.players, 
+            open_book, 
+            open_player,
+            open_bid,
+            open_ask)
 
     def get_book_json(self, player="conor"):
         if self.current_market_game is not None:

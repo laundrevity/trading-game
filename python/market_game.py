@@ -10,7 +10,7 @@ class MarketGameState(Enum):
     OVER = 3
 
 class MarketGame:
-    def __init__(self, sio: AsyncServer, players: List[str], book: Dict, precision=2):
+    def __init__(self, sio: AsyncServer, players: List[str], book: Dict, open_player, open_bid, open_ask, precision=2):
         self.sio = sio
         self.players = players
         self.state = MarketGameState.OPEN
@@ -20,6 +20,9 @@ class MarketGame:
         self.unsent = True
         self.precision = precision
         self.positions = {p: 0 for p in self.players}
+        self.open_mm = open_player
+        self.open_bid = int(float(open_bid) * 10**(self.precision))
+        self.open_ask = int(float(open_ask) * 10**(self.precision))
 
     def get_levels_grid(self, player):
         # first populate rows based on min/max price in book

@@ -225,3 +225,48 @@ class UnixSocketManager:
                     side = 1)
             message = pb2.Message(type=['CANCEL_ORDER'], cancel_order=cancel_msg)
             await self.write_proto_message(message)
+
+    async def handle_open_side(self, data):
+        open_mm = self.gm.current_market_game.open_mm
+        open_bid = self.gm.current_market_game.open_bid
+        open_ask = self.gm.current_market_game.open_ask
+
+        if data["side"] == "BUY":
+            mm_insert_msg = pb2.InsertOrder(
+                request_id=self.request_id,
+                instrument=self.instrument,
+                account_name=open_mm,
+                volume=1,
+                price=open_ask,
+                side=1)
+
+            agg_insert_msg = pb2.InsertOrder(
+                request_id=self.request_id+1,
+                instrument=self.instrument,
+                account_name=data["user"],
+                volume=1,
+                price=open_ask,
+                side=0)
+        
+        else:
+            mm_insert_msg = pb2.InsertOrder(
+                request_id=self.request_id,
+                instrument=self.instrument,
+                account_name=open_mm,
+                volume=1,
+                price=open_bid,
+                side=0)
+
+            agg_insert_msg = pb2.InsertOrder(
+                request_id=self.request_id+1,
+                instrument=self.instrument,
+                account_name=data["user"],
+                volume=1,
+                price=open_bid,
+                side=1)
+        
+        mm_msg = pb2.Message(type=['INSERT_ORDER'], insert_order=mm_insert_msg)
+        await self.write_proto_message(mm_msg)
+
+        agg_msg = pb2.Message(type=['INSERT_ORDER'], insert_order=agg_insert_msg)
+        await self.write_proto_message(agg_msg)
