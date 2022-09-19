@@ -125,9 +125,18 @@ void OrderBook::append_order(const std::shared_ptr<Order>& order) {
     }
 }
 
+bool OrderBook::insert_order(const std::shared_ptr<Order>& order) {
+    if (order->get_type() == OrderType::LIMIT) {
+        return insert_limit_order(order);
+    } else {
+        return insert_market_order(order);
+    }
+
+}
+
 // check first for crossing (in which case call PriceLevel::consume)
 // if not crossing call append_order
-bool OrderBook::insert_order(const std::shared_ptr<Order>& order) {
+bool OrderBook::insert_limit_order(const std::shared_ptr<Order>& order) {
     bool processing_order = true;
     while(processing_order) {
         if (order->get_side() == Side::BUY) {
@@ -198,6 +207,71 @@ bool OrderBook::insert_order(const std::shared_ptr<Order>& order) {
             } else {
                 // not in cross, so append and j chilling
                 append_order(order);
+                processing_order = false;
+            }
+        }
+    }
+    return true;
+}
+
+bool OrderBook::insert_market_order(const std::shared_ptr<Order>& order) {
+    bool processing_order = true;
+    while (processing_order) {
+        if (order->get_side() == Side::BUY) {
+            if (order->get_price() >= best_ask) {
+                auto it = ask_levels.find(best_ask.get_int());
+                if (it == ask_levels.end()) {
+                    std::cout << "missing price level. ask Conor. bankrupt" << std::endl;
+                    return false;
+                }
+                
+                const auto& top_ask_level = it->second;
+                auto top_ask_order = top_ask_level->get_top_order();
+                bool success = top_ask_level->consume(order);
+                
+                if (not success) {
+                    std::cout << "order not filled when it should be!" << std::endl;
+                    return false;
+                } else {
+                    if (top_ask_level->empty()) {
+                        ask_levels.erase(it);
+                        recalculate_top_ask();
+                    }
+                }
+
+                if (order->get_qty_remaining() == 0) {
+                    processing_order = false;
+                }                
+
+            } else {
+                processing_order = false;
+            }
+        } else {
+            if (order->get_price() <= best_bid) {
+                auto it = bid_levels.find(best_bid.get_int());
+                if (it == bid_levels.end()) {
+                    std::cout << "missing pricel evel. ask Conor. bankrupt" << std::endl;
+                    return false;
+                }
+
+                const auto& top_bid_level = it->second;
+                auto top_bid_order = top_bid_level->get_top_order();
+                bool success = top_bid_level->consume(order);
+
+                if (not success) {
+                    std::cout << "order not filled when it should be!" << std::endl;
+                    return false;
+                } else {
+                    if (top_bid_level->empty()) {
+                        bid_levels.erase(it);
+                        recalculate_top_bid();
+                    }
+                }
+
+                if (order->get_qty_remaining() == 0) {
+                    processing_order = false;
+                }
+            } else {
                 processing_order = false;
             }
         }

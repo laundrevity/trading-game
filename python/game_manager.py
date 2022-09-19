@@ -55,3 +55,16 @@ class GameManager:
                 'player': player
             }
             return json.dumps(payload)
+
+    def get_top_json(self):
+        if self.current_market_game is not None:
+            bid_rows, bid_cols, bid_grid, ask_rows, ask_cols, ask_grid = self.current_market_game.get_top_data()
+            payload = {
+                'bid_rows': bid_rows,
+                'bid_columns': bid_cols,
+                'bid_grid': bid_grid,
+                'ask_rows': ask_rows,
+                'ask_columns': ask_cols,
+                'ask_grid': ask_grid
+            }
+            return json.dumps(payload)

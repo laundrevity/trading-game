@@ -1,3 +1,4 @@
+from urllib import request
 from game_manager import GameManager
 import common_pb2 as pb2
 import socketio
@@ -105,9 +106,10 @@ class UnixSocketManager:
                         # let gm know that it was created successfully
                         if self.gm.current_market_game is not None:
                             # wait a second to allow the page to load in the browser
-                            await asyncio.sleep(1)
+                            # await asyncio.sleep(1)
                             print(f"emitting book", flush=True)
-                            await self.sio.emit("book", self.gm.get_book_json(), broadcast=True)
+                            # await self.sio.emit("book", self.gm.get_book_json(), broadcast=True)
+
                         else:
                             print(f"not emitting book cuz self.gm.current_market_game is None", flush=True)
 
@@ -119,13 +121,16 @@ class UnixSocketManager:
                         print(f"TRADE: {iid=}, {precision=}, {trade.volume=}, {trade.price=}, {trade.passive_account=}, {trade.passive_side=}")
                         self.gm.current_market_game.process_trade(trade.passive_account, trade.price, trade.volume, trade.passive_side)
 
-                        print(f"iterating over {self.gm.players=}")
-                        for player in self.gm.players:
-                            j = self.gm.get_book_json(player)
-                            #print(f"emitting book with {j=}", flush=True)
-                            await self.sio.emit("book", j, broadcast=True)
+                        # print(f"iterating over {self.gm.players=}")
+                        # for player in self.gm.players:
+                        #     j = self.gm.get_book_json(player)
+                        #     #print(f"emitting book with {j=}", flush=True)
+                        #     await self.sio.emit("book", j, broadcast=True)
 
-                            passive_side_str = "BUY" if trade.passive_side == 0 else "SELL"
+                        j_top = self.gm.get_top_json()
+                        await self.sio.emit("top", j_top, broadcast=True)
+
+                        passive_side_str = "BUY" if trade.passive_side == 0 else "SELL"
 
                         trade_data = {
                             "volume": trade.volume,
@@ -146,10 +151,15 @@ class UnixSocketManager:
                         self.gm.current_market_game.add_order(update.account_name, update.price, update.volume, update.side)
                         
                         print(f"iterating over {self.gm.players=}")
-                        for player in self.gm.players:
-                            j = self.gm.get_book_json(player)
-                            #print(f"emitting book with {j=}", flush=True)
-                            await self.sio.emit("book", j, broadcast=True)
+                        # for player in self.gm.players:
+                            # j = self.gm.get_book_json(player)
+                            # #print(f"emitting book with {j=}", flush=True)
+                            # await self.sio.emit("book", j, broadcast=True)
+
+                        j_top = self.gm.get_top_json()
+                        await self.sio.emit("top", j_top, broadcast=True)
+                        print(f"emitting top with {j_top=}", flush=True)
+
 
                     case "POSITION_UPDATE":
                         update = pb_msg.position_update
@@ -196,7 +206,7 @@ class UnixSocketManager:
         if "your" in data['column']:
             if "bid" in data['column']:
                 print(f"found your_bid_qty", flush=True)
-                insert_msg = pb2.InsertOrder(
+                insert_msg = pb2.InsertLimitOrder(
                     request_id=self.request_id,
                     instrument=self.instrument,
                     account_name=data['user'],
@@ -205,7 +215,7 @@ class UnixSocketManager:
                     side=0)
             else:
                 print(f"did not find your_bid_qty", flush=True)
-                insert_msg = pb2.InsertOrder(
+                insert_msg = pb2.InsertLimitOrder(
                     request_id=self.request_id,
                     instrument=self.instrument,
                     account_name=data['user'],
@@ -213,9 +223,54 @@ class UnixSocketManager:
                     price=order_px_int,
                     side=1)
             print(f"side={insert_msg.side}", flush=True)
-            message = pb2.Message(type=['INSERT_ORDER'], insert_order=insert_msg)
+            message = pb2.Message(type=['INSERT_LIMIT_ORDER'], insert_limit_order=insert_msg)
             await self.write_proto_message(message)
     
+    async def insert_limit_order(self, data):
+        order_px_int = int(float(data['px']) * 10**(self.precision))
+        if data['side'] == 'BUY':
+            insert_msg = pb2.InsertLimitOrder(
+                request_id=self.request_id,
+                instrument=self.instrument,
+                account_name=data['user'],
+                volume=int(data['qty']),
+                price=order_px_int,
+                side=0
+            )
+        else:
+            insert_msg = pb2.InsertLimitOrder(
+                request_id=self.request_id,
+                instrument=self.instrument,
+                account_name=data['user'],
+                volume=int(data['qty']),
+                price=order_px_int,
+                side=1
+            )
+        message = pb2.Message(type=['INSERT_LIMIT_ORDER'], insert_limit_order=insert_msg)
+        await self.write_proto_message(message)
+
+
+    async def insert_market_order(self, data):
+        if data['side'] == 'BUY':
+            insert_msg = pb2.InsertMarketOrder(
+                request_id=self.request_id,
+                instrument=self.instrument,
+                account_name=data['user'],
+                volume=int(data['qty']),
+                side=0
+            )
+        else:
+            insert_msg = pb2.InsertMarketOrder(
+                request_id=self.request_id,
+                instrument=self.instrument,
+                account_name=data['user'],
+                volume=int(data['qty']),
+                side=1
+            )   
+        message = pb2.Message(type=['INSERT_MARKET_ORDER'], insert_market_order=insert_msg)
+        await self.write_proto_message(message)
+
+
     async def cancel_order(self, data):
         order_px_int = int(float(data['row']) * 10**(self.precision))
         if "your" in data['column']:
@@ -235,6 +290,7 @@ class UnixSocketManager:
                     side = 1)
             message = pb2.Message(type=['CANCEL_ORDER'], cancel_order=cancel_msg)
             await self.write_proto_message(message)
+
 
     async def handle_open_side(self, data):
         open_mm = self.gm.current_market_game.open_mm

@@ -120,10 +120,14 @@ async def test_market():
 
     if gm.current_market_game is None:
         gm.initialize_market_game(current_user.auth_id, 627, 100, 101)
+        gm.current_market_game.book = {
+            'bids': {},
+            'asks': {}
+        }
         await usm.create_market(0, 2, 627, ["conor", "ronoc"])
 
-    for player in gm.players:
-        await sio.emit("book", gm.get_book_json(player), broadcast=True)
+    # for player in gm.players:
+    #     await sio.emit("book", gm.get_book_json(player), broadcast=True)
     
     return await render_template('market.html', user=current_user.auth_id)
 
@@ -200,3 +204,17 @@ async def handle_right_click(sid, msg):
     data = json.loads(msg)
     print(f"handle_right_click: {sid=}, {data=}", flush=True)
     await usm.cancel_order(data)
+
+
+@sio.event
+async def handle_limit(sid, msg):
+    print(f"handle_limit: {msg=}", flush=True)
+    data = json.loads(msg)
+    await usm.insert_limit_order(data)
+
+
+@sio.event
+async def handle_market(sid, msg):
+    print(f"handle_market: {msg=}", flush=True)
+    data = json.loads(msg)
+    await usm.insert_market_order(data)

@@ -115,10 +115,46 @@ class MarketGame:
 
         return rows, self.columns, grid
 
+
+    def get_top_data(self):
+        bid_grid = {}
+        ask_grid = {}
+        bid_prices = sorted(self.book['bids'].keys(), key=lambda p: float(p)) [::-1]
+        bid_rows = []
+        local_oid = 0
+        for bid in bid_prices:
+            orders = self.book['bids'][bid]
+            for player, qty in orders:
+                bid_grid[local_oid] = {
+                    'player': player,
+                    'qty': qty,
+                    'px': bid
+                }
+                bid_rows.append(local_oid)
+                local_oid += 1
+                
+        ask_prices = sorted(self.book['asks'].keys(), key = lambda p: float(p))
+        ask_rows = []
+        for ask in ask_prices:
+            orders = self.book['asks'][ask]
+            for player, qty in orders:
+                ask_grid[local_oid] = {
+                    'player': player,
+                    'qty': qty,
+                    'px': ask
+                }
+                ask_rows.append(local_oid)
+                local_oid += 1
+        
+        bid_columns = ['player', 'qty', 'px']
+        ask_columns = ['px', 'qty', 'player']
+        return bid_rows, bid_columns, bid_grid, ask_rows, ask_columns, ask_grid
+
+
     def add_order(self, player, price, qty, side):
+        print(f"adding order: {player=}, {price=}, {qty=}, {side=}", flush=True)
         px_str = f'{(price/(10**self.precision)):.2f}'
         if side == 0:
-
             if qty == 0:
                 # cancel all of the orders for this guy
                 indices_to_remove = []
@@ -153,6 +189,9 @@ class MarketGame:
                 if px_str not in self.book['asks']:
                     self.book['asks'][px_str] = []
                 self.book['asks'][px_str].append([player, qty])
+
+        print(f"after adding order, {self.book=}", flush=True)
+
 
     def process_trade(self, passive_player, price, qty, passive_side):
         px_str = f'{(price/(10**self.precision)):.2f}'

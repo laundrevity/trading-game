@@ -3,13 +3,14 @@ package ProtoCommon;
 
 enum MessageType {
     GENERIC_REPLY = 0;
-    INSERT_ORDER = 1;
-    CANCEL_ORDER = 2;
-    LEVEL_UPDATE = 3;
-    TRADE = 4;
-    CREATE_MARKET = 5;
-    CREATE_MARKET_REPLY = 6;
-    POSITION_UPDATE = 7;
+    INSERT_LIMIT_ORDER = 1;
+    INSERT_MARKET_ORDER = 2;
+    CANCEL_ORDER = 3;
+    LEVEL_UPDATE = 4;
+    TRADE = 5;
+    CREATE_MARKET = 6;
+    CREATE_MARKET_REPLY = 7;
+    POSITION_UPDATE = 8;
 }
 
 enum Side {
@@ -28,13 +29,21 @@ message GenericReply {
     optional string text        = 3;
 }
 
-message InsertOrder {
+message InsertLimitOrder {
     required uint32 request_id = 1;
     required Instrument instrument = 2;
     required string account_name = 3;
     required uint64 volume = 4;
     required int64 price = 5; // in divisor_ticks, convertible with precision
-    required Side side = 6;   
+    required Side side = 6;
+}
+
+message InsertMarketOrder {
+    required uint32 request_id = 1;
+    required Instrument instrument = 2;
+    required string account_name = 3;
+    required uint64 volume = 4;
+    required Side side = 5;
 }
 
 message CancelOrder {
@@ -81,11 +90,12 @@ message PositionUpdate {
 
 message Message {
     repeated MessageType type = 1;
-    optional InsertOrder insert_order = 2;
-    optional CancelOrder cancel_order = 3;
-    optional LevelUpdate level_update = 4;
-    optional Trade trade = 5;
-    optional CreateMarket create_market = 6;
-    optional CreateMarketReply create_market_reply = 7;
-    optional PositionUpdate position_update = 8;
+    optional InsertLimitOrder insert_limit_order = 2;
+    optional InsertMarketOrder insert_market_order = 3;
+    optional CancelOrder cancel_order = 4;
+    optional LevelUpdate level_update = 5;
+    optional Trade trade = 6;
+    optional CreateMarket create_market = 7;
+    optional CreateMarketReply create_market_reply = 8;
+    optional PositionUpdate position_update = 9;
 }

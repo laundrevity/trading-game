@@ -10,9 +10,18 @@ enum class Side{
     SELL = 1
 };
 
+enum class OrderType {
+    LIMIT = 0,
+    MARKET = 1
+};
+
 class Order {
 public:
+    // create LIMIT order
     Order(size_t order_id, const std::shared_ptr<Account>& account, size_t instrument_id, Price price, size_t qty, Side side);
+
+    // create MARKET order
+    Order(size_t order_id, const std::shared_ptr<Account>& account, size_t instrument_id, size_t qty, Side side);
 
     size_t get_order_id() const {
         return order_id;
@@ -42,6 +51,10 @@ public:
         return side;
     }
 
+    OrderType get_type() const {
+        return type;
+    }
+
     void partially_fill(size_t fill_qty) {
         filled_qty += fill_qty;
     }
@@ -56,6 +69,7 @@ private:
     size_t initial_qty;
     size_t filled_qty;
     Side side;
+    OrderType type;
     bool alive;
 
 public:

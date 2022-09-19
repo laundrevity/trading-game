@@ -2,28 +2,6 @@
 <head>
     <title>Trading Game Market Phase</title>
     <style>
-        table {
-            font-family: Arial, Helvetica, sans-serif;
-            border-collapse: collapse;
-        }
-
-        td,
-        th {
-            border: 1px solid #ddd;
-            padding: 8px;
-        }
-
-        tr:hover {
-            background-color: #f2f2f2;
-        }
-
-        th {
-            padding-top: 12px;
-            padding-bottom: 12px;
-            text-align: left;
-            background-color: #00d9ff;
-            color: rgb(0, 0, 0);
-        }
 
         .wrapper {
             display: flex;
@@ -42,25 +20,37 @@
 time remaining:
 <p id="time_left"></p>
 net position: <p id="position">0</p>
+<br>
+<form action="" method="" class="manual-input">
+    <div>
+        <label for="px">px: </label>
+        <input type="text" name="px" id="px-input">
+    </div>
+    <div>
+        <label for="qty">qty(int): </label>
+        <input type="text" name="qty" value="1" id="qty-input" required>
+    </div>
+    <div>
+        <label for="is_buy">is buy?</label>
+        <input type="checkbox" name="is_buy" id="is-buy-input" checked>
+    </div>
+    <div>
+        <input type="button" onclick="handle_limit()" value="send LIMIT order">
+    </div>
+    <div>
+        <input type="button" onclick="handle_market_buy()" value="send MKT buy">
+    </div>
+    <div>
+        <input type="button" onclick="handle_market_sell()" value="send MKT sell">
+    </div>
+</form>
 <br><br>
 <div class="wrapper">
-<div id="ladder">
+<div id="bid-grid">
 </div>
-<table id="trades-table">
-<thead> 
-    <tr>
-        <th>passive user</th>
-        <th>passive side</th>
-        <th>trade qty</th>
-        <th>trade px</th>
-        <th>trade pnl</th>
-    </tr>
-</thead>
-<tbody>
-</tbody>
-</table>
+<div id="ask-grid">
 </div>
-
+</div>
 <script>
     const socket = io();
 
@@ -74,6 +64,79 @@ net position: <p id="position">0</p>
             let time_ele = document.getElementById("time_left");
             time_ele.innerHTML = data["market_time_left"];
         }
+    });
+
+    socket.on("top", (msg) => {
+        console.log("top, msg=", msg);
+        let data = JSON.parse(msg);
+        
+        let bid_rows = data['bid_rows'];
+        let bid_cols = data['bid_columns'];
+        let bid_grid = data['bid_grid'];
+        let bid_table = document.createElement('table');
+        let bid_thead = document.createElement('thead');
+        let bid_tbody = document.createElement('tbody');
+        bid_table.appendChild(bid_thead);
+        bid_table.appendChild(bid_tbody);
+
+        let bid_hr = document.createElement('tr');
+        let bid_th1 = document.createElement('th');
+        let bid_th2 = document.createElement('th');
+        let bid_th3 = document.createElement('th');
+        bid_th1.innerHTML = 'player';
+        bid_th2.innerHTML = 'qty';
+        bid_th3.innerHTML = 'price';
+        bid_hr.append(bid_th1);
+        bid_hr.append(bid_th2);
+        bid_hr.append(bid_th3);
+        bid_thead.append(bid_hr);
+
+        for (const bid_row of bid_rows) {
+            let bid_tr = document.createElement('tr');
+            for (const [column, value] of Object.entries(bid_grid[bid_row])) {
+                let bid_td = document.createElement('td');
+                bid_td.innerHTML = value;
+                bid_tbody.appendChild(bid_td);
+            }
+            bid_tbody.append(bid_tr);
+        }
+        let bid_div = document.getElementById('bid-grid');
+        bid_div.removeChild(bid_div.firstChild);
+        bid_div.appendChild(bid_table);
+
+        let ask_rows = data['ask_rows'];
+        let ask_cols = data['ask_columns'];
+        let ask_grid = data['ask_grid'];
+        let ask_table = document.createElement('table');
+        let ask_thead = document.createElement('thead');
+        let ask_tbody = document.createElement('tbody');
+        ask_table.appendChild(ask_thead);
+        ask_table.appendChild(ask_tbody);
+
+        let ask_hr = document.createElement('tr');
+        let ask_th1 = document.createElement('th');
+        let ask_th2 = document.createElement('th');
+        let ask_th3 = document.createElement('th');
+        ask_th1.innerHTML = 'price';
+        ask_th2.innerHTML = 'qty';
+        ask_th3.innerHTML = 'player';
+        ask_hr.append(ask_th1);
+        ask_hr.append(ask_th2);
+        ask_hr.append(ask_th3);
+        ask_thead.append(ask_hr);
+
+        for (const ask_row of ask_rows) {
+            let ask_tr = document.createElement('tr');
+            for (const [column, value] of Object.entries(ask_grid[ask_row])) {
+                let ask_td = document.createElement('td');
+                ask_td.innerHTML = value;
+                ask_tbody.appendChild(ask_td);
+            }
+            ask_tbody.append(ask_tr);
+        }
+        let ask_div = document.getElementById('ask-grid');
+        ask_div.removeChild(ask_div.firstChild);
+        ask_div.appendChild(ask_table);
     });
 
     socket.on("book", (msg) => {
@@ -197,6 +260,45 @@ net position: <p id="position">0</p>
         socket.emit("handle_right_click", JSON.stringify(payload));        
     }
     
+    function handle_limit() {
+        console.log("handle_limit");
+        let qty = document.getElementById('qty-input').value;
+        let px = document.getElementById('px-input').value;
+        let is_buy = document.getElementById('is-buy-input').checked;
+        let side = is_buy ? "BUY" : "SELL";
+        let user_name = document.getElementById("user").innerHTML;
+        let order = {
+            qty: qty,
+            px: px,
+            side: side,
+            user: user_name
+        };
+        socket.emit("handle_limit", JSON.stringify(order));
+    }
+
+    function handle_market_buy() {
+        console.log('handle_market_buy');
+        let qty = document.getElementById('qty-input').value;
+        let user_name = document.getElementById("user").innerHTML;
+        let order = {
+            qty: qty,
+            side: "BUY",
+            user: user_name
+        };
+        socket.emit("handle_market", JSON.stringify(order));
+    }
+
+    function handle_market_sell() {
+        console.log('handle_market_sell');
+        let qty = document.getElementById('qty-input').value;
+        let user_name = document.getElementById('user').innerHTML;
+        let order = {
+            qty: qty,
+            side: "SELL",
+            user: user_name
+        };
+        socket.emit("handle_market", JSON.stringify(order));
+    }
 
 </script>
 

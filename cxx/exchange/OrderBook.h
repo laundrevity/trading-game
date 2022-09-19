@@ -13,6 +13,10 @@ public:
     // this first checks for fill, and calls append_order if no fill
     bool insert_order(const std::shared_ptr<Order>& order);
 
+    bool insert_limit_order(const std::shared_ptr<Order>& order);
+
+    bool insert_market_order(const std::shared_ptr<Order>& order);
+
     // this doesnt check for fill, just will add it 
     void append_order(const std::shared_ptr<Order>& order);
 

@@ -56,10 +56,10 @@ void UnixConnection::handle_read(const boost::system::error_code& error, size_t 
                             break;
                         }
 
-                        case ProtoCommon::INSERT_ORDER: {
-                            std::cout << "INSERT_ORDER" << std::endl;
+                        case ProtoCommon::INSERT_LIMIT_ORDER: {
+                            std::cout << "INSERT_LIMIT_ORDER" << std::endl;
                             
-                            auto insert_message = msg.insert_order();
+                            auto insert_message = msg.insert_limit_order();
                             auto instrument = insert_message.instrument();
                             size_t instrument_id = instrument.id();
                             size_t precision = instrument.precision();
@@ -95,6 +95,45 @@ void UnixConnection::handle_read(const boost::system::error_code& error, size_t 
                                     exchange->increment_book_order_id(instrument_id);
                                 } else {
                                     std::cout << "cant send order because account_name=" << account_name << " is not registered" << std::endl;
+                                }
+                            } else {
+                                std::cout << "cant send order because book_id=" << instrument_id << " is not registered" << std::endl;
+                            }
+
+                            break;
+                        }
+
+                        case ProtoCommon::INSERT_MARKET_ORDER: {
+                            std::cout << "INSERT_MARKET_ORDER" << std::endl;
+                            
+                            auto insert_message = msg.insert_market_order();
+                            auto instrument = insert_message.instrument();
+                            size_t instrument_id = instrument.id();
+                            size_t precision = instrument.precision();
+                            std::string account_name = insert_message.account_name();
+
+                            auto book_opt = exchange->get_book(instrument_id);
+                            if (book_opt) {
+                                auto account_opt = exchange->get_account(account_name);
+                                if (account_opt) {
+                                    size_t next_order_id = exchange->get_book_order_id(instrument_id);
+                                    auto order = std::make_shared<Order>(
+                                        next_order_id,
+                                        account_opt.value(),
+                                        instrument_id,
+                                        insert_message.volume(),
+                                        (insert_message.side() == ProtoCommon::BUY) ? Side::BUY : Side::SELL
+                                    );
+                                    order->attach_connection(shared_from_this());
+
+                                    if (exchange->process_order(order)) {
+                                        std::cout << "successfully processed market order";
+                                    } else {
+                                        std::cout << "failed to process market order";
+                                    }
+                                    exchange->increment_book_order_id(instrument_id);
+                                } else {
+                                    std::cout << "cant send order because acct_name=" << account_name << " is not registered" << std::endl;
                                 }
                             } else {
                                 std::cout << "cant send order because book_id=" << instrument_id << " is not registered" << std::endl;
