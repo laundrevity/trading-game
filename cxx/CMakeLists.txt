@@ -31,6 +31,11 @@ include_directories(${Protobuf_INCLUDE_DIRS})
 
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS common.proto)
 
+# execute_process(COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
+# --proto_path=${CMAKE_CURRENT_SOURCE_DIR}
+# --cpp_out=/app/cxx
+# common.proto)
+
 execute_process(COMMAND ${PROTOBUF_PROTOC_EXECUTABLE} 
 --proto_path=${CMAKE_CURRENT_SOURCE_DIR} 
 --python_out=/app/python
@@ -49,10 +54,10 @@ target_link_libraries(main PUBLIC exchange_lib server_lib)
 target_link_libraries(server_lib protobuf::libprotobuf exchange_lib)
 target_include_directories(server_lib PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-add_executable(proto_test startup/proto_test.cpp ${PROTO_SRCS} ${PROTO_HDRS})
-target_link_libraries(proto_test protobuf::libprotobuf)
-target_include_directories(proto_test PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
+# include_directories(${CMAKE_CURRENT_BINARY_DIR})
+# add_executable(proto_test startup/proto_test.cpp ${PROTO_SRCS} ${PROTO_HDRS})
+# target_link_libraries(proto_test protobuf::libprotobuf)
+# target_include_directories(proto_test PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
 
 add_executable(fakex_tests 
 tests/price_tests.cpp 

@@ -3,12 +3,14 @@ from width_game import WidthGame
 from enum import Enum
 import json
 
+
 class GameManagerState(Enum):
     INITIAL = 1
     WIDTH = 2
     TRADING_OPEN = 3
     TRADING_ACTIVE = 4
     TRADING_DONE = 5
+
 
 class GameManager:
     def __init__(self, sio):
