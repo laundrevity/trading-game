@@ -160,7 +160,6 @@ class UnixSocketManager:
                         await self.sio.emit("top", j_top, broadcast=True)
                         print(f"emitting top with {j_top=}", flush=True)
 
-
                     case "POSITION_UPDATE":
                         update = pb_msg.position_update
                         instrument = update.instrument
@@ -201,7 +200,7 @@ class UnixSocketManager:
         self.precision = precision
 
     async def insert_order(self, data):
-        order_px_int = int(float(data['row']) * 10**(self.precision))
+        order_px_int = int(float(data['row']) * 10**self.precision)
 
         if "your" in data['column']:
             if "bid" in data['column']:
@@ -227,7 +226,7 @@ class UnixSocketManager:
             await self.write_proto_message(message)
     
     async def insert_limit_order(self, data):
-        order_px_int = int(float(data['px']) * 10**(self.precision))
+        order_px_int = int(float(data['px']) * 10**self.precision)
         if data['side'] == 'BUY':
             insert_msg = pb2.InsertLimitOrder(
                 request_id=self.request_id,
@@ -249,7 +248,6 @@ class UnixSocketManager:
         message = pb2.Message(type=['INSERT_LIMIT_ORDER'], insert_limit_order=insert_msg)
         await self.write_proto_message(message)
 
-
     async def insert_market_order(self, data):
         if data['side'] == 'BUY':
             insert_msg = pb2.InsertMarketOrder(
@@ -270,7 +268,6 @@ class UnixSocketManager:
         message = pb2.Message(type=['INSERT_MARKET_ORDER'], insert_market_order=insert_msg)
         await self.write_proto_message(message)
 
-
     async def cancel_order(self, data):
         order_px_int = int(float(data['row']) * 10**(self.precision))
         if "your" in data['column']:
@@ -290,7 +287,6 @@ class UnixSocketManager:
                     side = 1)
             message = pb2.Message(type=['CANCEL_ORDER'], cancel_order=cancel_msg)
             await self.write_proto_message(message)
-
 
     async def handle_open_side(self, data):
         open_mm = self.gm.current_market_game.open_mm

@@ -5,7 +5,12 @@
 
         .wrapper {
             display: flex;
-            justify-content: space-between;
+            justify-content: space-evenly;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
         }
 
     </style>
@@ -139,70 +144,6 @@ net position: <p id="position">0</p>
         ask_div.appendChild(ask_table);
     });
 
-    socket.on("book", (msg) => {
-        console.log("book, msg=", msg);
-        let data = JSON.parse(msg);
-        let rows = data['rows'];
-        let columns = data['columns'];
-        let grid = data['grid'];
-        let user = data['player'];
-
-        if (user === document.getElementById("user").innerHTML) {
-            let table = document.createElement('table');
-            let thead = document.createElement('thead');
-            let tbody = document.createElement('tbody');
-            table.appendChild(thead);
-            table.appendChild(tbody);
-    
-            let hr = document.createElement('tr');
-            let hr1 = document.createElement('th');
-            let hr2 = document.createElement('th');
-            let hr3 = document.createElement('th');
-            let hr4 = document.createElement('th');
-            let hr5 = document.createElement('th');
-            
-            hr1.innerHTML = 'your bid qty';
-            hr2.innerHTML = 'market bid qty';
-            hr3.innerHTML = 'price';
-            hr4.innerHTML = 'market ask qty';
-            hr5.innerHTML = 'your ask qty';
-            
-            hr.append(hr1);
-            hr.append(hr2);
-            hr.append(hr3);
-            hr.append(hr4);
-            hr.append(hr5);
-            thead.append(hr);
-    
-            for (const row of rows) {
-                let tr = document.createElement('tr');
-                console.log("rending row=", row);
-                for (const [column, value] of Object.entries(grid[row])) {
-                    let td = document.createElement('td');
-                    td.innerHTML = value;
-    
-                    td.onclick = (() => {
-                        handle_click(row, column);
-                    });
-    
-                    td.oncontextmenu = (() => {
-                        handle_right_click(row, column);
-                        return false;
-                    });
-    
-                    tbody.appendChild(td);
-                }
-                tbody.appendChild(tr);
-            }
-    
-            let ladder = document.getElementById('ladder');
-            ladder.removeChild(ladder.firstChild);
-            ladder.appendChild(table);
-        } else {
-            console.log("not updating book html because got user=", user);
-        }        
-    });
-
     socket.on("position", (msg) => {
         console.log("position, msg=", msg);
         let data = JSON.parse(msg);
@@ -212,16 +153,6 @@ net position: <p id="position">0</p>
             pos_ele.innerHTML = data['position'];
         }
     });
-
-
-//    socket.on("trade", (msg) => {
-//        console.log("trade, msg=", msg);
-//        let data = JSON.parse(msg);
-//        let trades = document.getElementById('trades');
-//        let div = document.createElement('div');
-//        div.innerHTML = "[" + data['passive_account'] + "] " + data["passive_side"] + " " + data["volume"] + " @ " + data["price"];
-//        trades.appendChild(div);
-//    });
 
     socket.on("trade", (msg) => {
         console.log("trade, msg=", msg);
@@ -236,29 +167,6 @@ net position: <p id="position">0</p>
     socket.on("end_market_game", (msg) => {
         window.location.href = "{{ url_for('results') }}";
     });
-
-
-    function handle_click(row, column) {
-        console.log("handle_click, row=", row, ", column=", column);
-        let user_name = document.getElementById("user").innerHTML;
-        let payload = {
-            user: user_name,
-            row: row,
-            column: column
-        };
-        socket.emit("handle_click", JSON.stringify(payload));
-    }
-
-    function handle_right_click(row, column) {
-        console.log("handle_right_click, row=", row, ", column=", column);
-        let user_name = document.getElementById("user").innerHTML;
-        let payload = {
-            user: user_name,
-            row: row,
-            column: column
-        };
-        socket.emit("handle_right_click", JSON.stringify(payload));        
-    }
     
     function handle_limit() {
         console.log("handle_limit");

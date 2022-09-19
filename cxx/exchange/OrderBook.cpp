@@ -218,7 +218,7 @@ bool OrderBook::insert_market_order(const std::shared_ptr<Order>& order) {
     bool processing_order = true;
     while (processing_order) {
         if (order->get_side() == Side::BUY) {
-            if (order->get_price() >= best_ask) {
+            if (best_ask < Price(Limit::MAX)) {
                 auto it = ask_levels.find(best_ask.get_int());
                 if (it == ask_levels.end()) {
                     std::cout << "missing price level. ask Conor. bankrupt" << std::endl;
@@ -247,7 +247,7 @@ bool OrderBook::insert_market_order(const std::shared_ptr<Order>& order) {
                 processing_order = false;
             }
         } else {
-            if (order->get_price() <= best_bid) {
+            if (best_bid > Price(Limit::MIN)) {
                 auto it = bid_levels.find(best_bid.get_int());
                 if (it == bid_levels.end()) {
                     std::cout << "missing pricel evel. ask Conor. bankrupt" << std::endl;

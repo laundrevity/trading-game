@@ -26,6 +26,7 @@ shutdown_event = asyncio.Event()
 def _signal_handler(*_: Any) -> None:
     shutdown_event.set()
 
+
 async def tick():
     while True:
         data = {
@@ -142,7 +143,6 @@ async def handle_width_update(sid, msg):
     data = json.loads(msg)
     if 'user' not in data or data['user'] not in gm.players:
         raise Exception(f"user not in {data=} or user not in {gm.players=}")
-    
 
     if gm.current_width_game is not None:
         if data['width'] != '':
@@ -181,9 +181,6 @@ async def handle_open_side(sid, msg):
     data = json.loads(msg)
 
     # send both MM and this crossing order to matcher, to simulate market-at-open orders
-
-
-    
     await sio.emit("advance_to_market", json.dumps({}))
     await asyncio.sleep(1)
     await usm.handle_open_side(data)

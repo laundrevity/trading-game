@@ -127,7 +127,8 @@ void UnixConnection::handle_read(const boost::system::error_code& error, size_t 
                                     order->attach_connection(shared_from_this());
 
                                     if (exchange->process_order(order)) {
-                                        std::cout << "successfully processed market order";
+                                        std::cout << "successfully processed market order: ";
+                                        std::cout << "user=" << account_name << ", volume=" << insert_message.volume() << ", side=" << int(order->get_side()) << std::endl;
                                     } else {
                                         std::cout << "failed to process market order";
                                     }
