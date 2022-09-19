@@ -143,6 +143,26 @@ class UnixSocketManager:
                         }                    
                         await self.sio.emit("public_trade", json.dumps(public_trade_data), broadcast=True)
 
+                        buyer_trade_data = {
+                            "player": trade.buyer,
+                            "side": "BUY",
+                            "qty": trade.volume,
+                            "px": trade.price,
+                            "agg": "Y" if trade.passive_side == 0 else "N",
+                            "counterparty": trade.seller
+                        }
+                        await self.sio.emit("private_trade", json.dumps(buyer_trade_data), broadcast=True)
+
+                        seller_trade_data = {
+                            "player": trade.seller,
+                            "side": "SELL",
+                            "qty": trade.volume,
+                            "px": trade.price,
+                            "agg": "N" if trade.passive_side == 0 else "Y",
+                            "counterparty": trade.buyer
+                        }
+                        await self.sio.emit("private_trade", json.dumps(seller_trade_data), broadcast=True)
+
                     case "LEVEL_UPDATE":
                         update = pb_msg.level_update
                         instrument = update.instrument

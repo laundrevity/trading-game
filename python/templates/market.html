@@ -68,6 +68,19 @@ net position: <p id="position">0</p>
 <tbody>
 </tbody>
 </table>
+<table id="private-trades">
+<thead>
+    <tr>
+        <td>side</td>
+        <td>qty</td>
+        <td>price</td>
+        <td>agg</td>
+        <td>counterparty</td>
+    </tr>
+</thead>
+<tbody>
+</tbody>
+</table>
 </div>
 <script>
     const socket = io();
@@ -184,6 +197,18 @@ net position: <p id="position">0</p>
         let html_content = "<tr><td>" + data["agg_user"] + "</td><td>" + data["agg_side"] + "</td><td>" + data["qty"] + "</td><td>" + data["px"] + "</td><td>" + data["passive_user"] + "</td></tr>";
         let new_row = tbody_ref.insertRow(tbody_ref.rows.length);
         new_row.innerHTML = html_content;
+    });
+
+    socket.on("private_trade", (msg) => {
+        console.log("private_trade, msg=", msg);
+        let data = JSON.parse(msg);
+        let user = data['player'];
+        if (user === document.getElementById("user").innerHTML) {
+            let tbody_ref = document.getElementById('private-trades').getElementsByTagName('tbody')[0];
+            let html_content = "<tr><td>" + data["side"] + "</td><td>" + data["qty"] + "</td><td>" + data["px"] + "</td><td>" + data["agg"] + "</td><td>" + data["counterparty"] + "</td></tr>";
+            let new_row = tbody_ref.insertRow(tbody_ref.rows.length);
+            new_row.innerHTML = html_content;
+        }
     });
 
     socket.on("end_market_game", (msg) => {
