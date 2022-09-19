@@ -31,10 +31,10 @@ include_directories(${Protobuf_INCLUDE_DIRS})
 
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS common.proto)
 
-# execute_process(COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
-# --proto_path=${CMAKE_CURRENT_SOURCE_DIR}
-# --cpp_out=/app/cxx
-# common.proto)
+execute_process(COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
+--proto_path=${CMAKE_CURRENT_SOURCE_DIR}
+--cpp_out=/app/build
+common.proto)
 
 execute_process(COMMAND ${PROTOBUF_PROTOC_EXECUTABLE} 
 --proto_path=${CMAKE_CURRENT_SOURCE_DIR} 

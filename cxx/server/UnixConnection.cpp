@@ -250,6 +250,8 @@ void UnixConnection::notify_fill(
     trade.mutable_trade()->mutable_instrument()->set_precision(price.get_precision());
     trade.mutable_trade()->set_volume(volume);
     trade.mutable_trade()->set_price(price.get_int());
+    trade.mutable_trade()->set_buyer(buyer);
+    trade.mutable_trade()->set_seller(seller);
 
     if (passive_side == Side::BUY) {
         trade.mutable_trade()->set_passive_account(buyer);

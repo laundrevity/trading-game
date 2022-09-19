@@ -130,15 +130,18 @@ class UnixSocketManager:
                         j_top = self.gm.get_top_json()
                         await self.sio.emit("top", j_top, broadcast=True)
 
-                        passive_side_str = "BUY" if trade.passive_side == 0 else "SELL"
+                        passive_user = trade.buyer if trade.passive_side == 0 else trade.seller
+                        agg_user = trade.seller if trade.passive_side == 0 else trade.buyer
+                        agg_side = "SELL" if trade.passive_side == 0 else "BUY"
 
-                        trade_data = {
-                            "volume": trade.volume,
-                            "price": trade.price,
-                            "passive_account": trade.passive_account,
-                            "passive_side": passive_side_str
+                        public_trade_data = {
+                            "agg_user": agg_user,
+                            "agg_side": agg_side,
+                            "qty": trade.volume,
+                            "px": trade.price,
+                            "passive_user": passive_user
                         }                    
-                        await self.sio.emit("trade", json.dumps(trade_data), broadcast=True)
+                        await self.sio.emit("public_trade", json.dumps(public_trade_data), broadcast=True)
 
                     case "LEVEL_UPDATE":
                         update = pb_msg.level_update

@@ -55,6 +55,19 @@ net position: <p id="position">0</p>
 </div>
 <div id="ask-grid">
 </div>
+<table id="public-trades">
+<thead>
+    <tr>
+        <td>agg user</td>
+        <td>agg side</td>
+        <td>qty</td>
+        <td>px</td>
+        <td>passive user</td>
+    </tr>
+</thead>
+<tbody>
+</tbody>
+</table>
 </div>
 <script>
     const socket = io();
@@ -161,6 +174,15 @@ net position: <p id="position">0</p>
         
         let html_content = "<tr><td>" + data["passive_account"] + "</td><td>" + data["passive_side"] + "</td><td>" + data["volume"] + "</td><td>" + data["price"] + "</td></tr>";
         var new_row = tbody_ref.insertRow(tbody_ref.rows.length);
+        new_row.innerHTML = html_content;
+    });
+
+    socket.on("public_trade", (msg) => {
+        console.log("public_trade, msg=", msg);
+        let data = JSON.parse(msg);
+        let tbody_ref = document.getElementById('public-trades').getElementsByTagName('tbody')[0];
+        let html_content = "<tr><td>" + data["agg_user"] + "</td><td>" + data["agg_side"] + "</td><td>" + data["qty"] + "</td><td>" + data["px"] + "</td><td>" + data["passive_user"] + "</td></tr>";
+        let new_row = tbody_ref.insertRow(tbody_ref.rows.length);
         new_row.innerHTML = html_content;
     });
 
