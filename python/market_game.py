@@ -48,11 +48,12 @@ class MarketGame:
         rows = [t['id'] for t in self.trades]
         columns = ['passive user', 'passive side', 'trade qty', 'trade px', 'trade pnl']
         grid = {}
+        settle_px = self.settlement / (10**self.precision)
         for t in self.trades:
             if t['passive_side'] == "BUY":
-                pnl = t['qty'] * (self.settlement/(10**self.precision) - t['price'])
+                pnl = t['qty'] * (settle_px - t['price'])
             else:
-                pnl = t['qty'] * (t['price'] - self.settlement)
+                pnl = t['qty'] * (t['price'] - settle_px)
 
             grid[t['id']] = {
                 'passive user': t['passive_player'],
@@ -71,7 +72,6 @@ class MarketGame:
         await asyncio.sleep(1)
 
         await self.sio.emit('results', json.dumps(payload), broadcast=True)
-
 
     def get_levels_grid(self, player):
         # first populate rows based on min/max price in book
@@ -115,7 +115,6 @@ class MarketGame:
 
         return rows, self.columns, grid
 
-
     def get_top_data(self):
         bid_grid = {}
         ask_grid = {}
@@ -149,7 +148,6 @@ class MarketGame:
         bid_columns = ['player', 'qty', 'px']
         ask_columns = ['px', 'qty', 'player']
         return bid_rows, bid_columns, bid_grid, ask_rows, ask_columns, ask_grid
-
 
     def add_order(self, player, price, qty, side):
         print(f"adding order: {player=}, {price=}, {qty=}, {side=}", flush=True)
@@ -191,7 +189,6 @@ class MarketGame:
                 self.book['asks'][px_str].append([player, qty])
 
         print(f"after adding order, {self.book=}", flush=True)
-
 
     def process_trade(self, passive_player, price, qty, passive_side):
         px_str = f'{(price/(10**self.precision)):.2f}'

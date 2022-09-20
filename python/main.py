@@ -120,7 +120,7 @@ async def results():
 async def test_market():
 
     if gm.current_market_game is None:
-        gm.initialize_market_game(current_user.auth_id, 627, 100, 101)
+        gm.initialize_market_game(627, current_user.auth_id, 100, 101)
         gm.current_market_game.book = {
             'bids': {},
             'asks': {}
