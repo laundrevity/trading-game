@@ -1,0 +1,7 @@
+{
+    "markets": [
+        {"description": "birds_per_person", "precision": 2, "settlement": 6.27},
+        {"description": "random_int", "precision": 0, "settlement": 69},
+        {"description": "description goes here", "precision": 1, "settlement": 2.3}
+    ]
+}

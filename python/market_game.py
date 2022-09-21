@@ -23,8 +23,8 @@ class MarketGame:
         self.precision = precision
         self.positions = {p: 0 for p in self.players}
         self.open_mm = open_player
-        self.open_bid = int(float(open_bid) * 10**(self.precision))
-        self.open_ask = int(float(open_ask) * 10**(self.precision))
+        self.open_bid = int(float(open_bid) * 10**self.precision)
+        self.open_ask = int(float(open_ask) * 10**self.precision)
         self.settlement = settlement
         self.time_left = 60
         self.seconds_per_update = 30
@@ -247,3 +247,4 @@ class MarketGame:
             })
 
         self.trade_id += 1
+        self.time_left = max(self.time_left, self.seconds_per_update)

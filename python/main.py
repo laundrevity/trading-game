@@ -13,12 +13,24 @@ import signal
 from typing import Any
 
 quart_app = Quart(__name__)
+# quart_app.config.from_prefixed_env()
+
+
+# print(f"{quart_app.config=}", flush=True)
+# quart_app.config["QUART_AUTH_COOKIE_DOMAIN"] = "ws76-ams"
+quart_app.config["QUART_AUTH_COOKIE_SECURE"] = False
+
 quart_app.secret_key = 'superdupersecret'
 AuthManager(quart_app)
 sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins='*')
 app = socketio.ASGIApp(sio, quart_app)
 gm = GameManager(sio)
 usm = UnixSocketManager(sio, gm)
+with open('markets.json') as f:
+    markets = json.load(f)
+MARKET_INDEX = 1
+market_info = markets['markets'][MARKET_INDEX]
+print(f"loaded {markets=}", flush=True)
 
 shutdown_event = asyncio.Event()
 
@@ -75,7 +87,7 @@ async def width():
         # start a new active width game (here can pass the value desc)
         gm.initialize_width_game()
     # here is where the opening width is established, and initial bid/ask is established
-    return await render_template('width.html', user=current_user.auth_id)
+    return await render_template('width.html', user=current_user.auth_id, desc=market_info['description'])
 
 
 @quart_app.route('/market')
@@ -163,8 +175,10 @@ async def handle_bid_submission(sid, msg):
         'initial_ask': data['ask'],
         'initial_mm': data['user']
     }
-    gm.initialize_market_game(627, data['user'], data['bid'], data['ask'])
-    await usm.create_market(0, 2, 627, gm.players)
+    precision = market_info['precision']
+    settle = int(market_info['settlement'] * 10**precision)
+    gm.initialize_market_game(settle, data['user'], data['bid'], data['ask'])
+    await usm.create_market(0, precision, settle, gm.players)
     # redirect to trading open (all but MM)
     await sio.emit("advance_to_trading_open", json.dumps(payload), broadcast=True)
     # wait a second for folks to get redirected

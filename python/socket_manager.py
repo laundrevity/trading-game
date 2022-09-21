@@ -319,7 +319,7 @@ class UnixSocketManager:
         print(f"{open_mm=}, {open_bid=}, {open_ask=}", flush=True)
 
         if data["side"] == "BUY":
-            mm_insert_msg = pb2.InsertOrder(
+            mm_insert_msg = pb2.InsertLimitOrder(
                 request_id=self.request_id,
                 instrument=self.instrument,
                 account_name=open_mm,
@@ -327,7 +327,7 @@ class UnixSocketManager:
                 price=open_ask,
                 side=1)
 
-            agg_insert_msg = pb2.InsertOrder(
+            agg_insert_msg = pb2.InsertLimitOrder(
                 request_id=self.request_id+1,
                 instrument=self.instrument,
                 account_name=data["user"],
@@ -336,7 +336,7 @@ class UnixSocketManager:
                 side=0)
         
         else:
-            mm_insert_msg = pb2.InsertOrder(
+            mm_insert_msg = pb2.InsertLimitOrder(
                 request_id=self.request_id,
                 instrument=self.instrument,
                 account_name=open_mm,
@@ -344,7 +344,7 @@ class UnixSocketManager:
                 price=open_bid,
                 side=0)
 
-            agg_insert_msg = pb2.InsertOrder(
+            agg_insert_msg = pb2.InsertLimitOrder(
                 request_id=self.request_id+1,
                 instrument=self.instrument,
                 account_name=data["user"],
@@ -352,8 +352,8 @@ class UnixSocketManager:
                 price=open_bid,
                 side=1)
         
-        mm_msg = pb2.Message(type=['INSERT_ORDER'], insert_order=mm_insert_msg)
+        mm_msg = pb2.Message(type=['INSERT_LIMIT_ORDER'], insert_limit_order=mm_insert_msg)
         await self.write_proto_message(mm_msg)
 
-        agg_msg = pb2.Message(type=['INSERT_ORDER'], insert_order=agg_insert_msg)
+        agg_msg = pb2.Message(type=['INSERT_LIMIT_ORDER'], insert_limit_order=agg_insert_msg)
         await self.write_proto_message(agg_msg)
