@@ -75,7 +75,7 @@ void UnixConnection::handle_read(const boost::system::error_code& error, size_t 
                                         next_order_id,
                                         account_opt.value(),
                                         instrument_id,
-                                        Price(insert_message.price()),
+                                        Price(insert_message.price(), precision),
                                         insert_message.volume(),
                                         (insert_message.side() == ProtoCommon::BUY) ? Side::BUY : Side::SELL
                                     );
@@ -109,7 +109,7 @@ void UnixConnection::handle_read(const boost::system::error_code& error, size_t 
                             auto insert_message = msg.insert_market_order();
                             auto instrument = insert_message.instrument();
                             size_t instrument_id = instrument.id();
-                            size_t precision = instrument.precision();
+                            // size_t precision = instrument.precision();
                             std::string account_name = insert_message.account_name();
 
                             auto book_opt = exchange->get_book(instrument_id);
@@ -151,7 +151,7 @@ void UnixConnection::handle_read(const boost::system::error_code& error, size_t 
                             size_t instrument_id = instrument.id();
                             size_t precision = instrument.precision();
                             std::string account_name = cancel.account_name();
-                            auto price = Price(cancel.price());
+                            auto price = Price(cancel.price(), precision);
                             auto side = (cancel.side() == ProtoCommon::BUY ? Side::BUY : Side::SELL);
 
                             auto book_opt = exchange->get_book(instrument_id);

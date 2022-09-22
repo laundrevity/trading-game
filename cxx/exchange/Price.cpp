@@ -1,6 +1,6 @@
 #include "Price.h"
 
-Price::Price(int num) : numerator(num) {
+Price::Price(int num, size_t prec) : numerator(num), precision(prec) {
     ballast = 1;
     size_t counter = 0;
     while (counter < precision) {

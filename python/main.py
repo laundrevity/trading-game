@@ -180,8 +180,8 @@ async def handle_bid_submission(sid, msg):
     gm.initialize_market_game(settle, precision)
     
     gm.current_market_game.open_mm = data['user']
-    gm.current_market_game.open_bid = data['bid']
-    gm.current_market_game.open_ask = data['ask']
+    gm.current_market_game.open_bid = data['bid'] * 10**precision
+    gm.current_market_game.open_ask = data['ask'] * 10**precision
 
     await usm.create_market(0, precision, settle, gm.players)
     # redirect to trading open (all but MM)
@@ -201,9 +201,6 @@ async def handle_open_side(sid, msg):
     await sio.emit("advance_to_market", json.dumps({}))
     await asyncio.sleep(1)
     await usm.handle_open_side(data)
-    # broadcast the initial book
-    for player in gm.players:
-        await sio.emit("book", gm.get_book_json(player), broadcast=True)
 
 
 @sio.event

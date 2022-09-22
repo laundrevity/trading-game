@@ -9,7 +9,7 @@ enum class Limit {
 
 class Price {
     int numerator{0};
-    size_t precision{2}; // should be based on tick size 
+    size_t precision; // should be based on tick size 
     static const size_t tick_size{1};
     int integer_part{0};
     int remainder{0};
@@ -18,8 +18,8 @@ class Price {
     bool max{false};
 
 public:
-    explicit Price(int num);
-    explicit Price(Limit limit) {
+    explicit Price(int num, size_t prec = 2);
+    explicit Price(Limit limit, size_t prec = 2) : precision(prec) {
         min = (limit == Limit::MIN);
         max = (limit == Limit::MAX);
     }

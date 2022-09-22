@@ -146,7 +146,7 @@ class UnixSocketManager:
                             "agg_user": agg_user,
                             "agg_side": agg_side,
                             "qty": trade.volume,
-                            "px": trade.price,
+                            "px": trade.price / 10**precision,
                             "passive_user": passive_user
                         }                    
                         await self.sio.emit("public_trade", json.dumps(public_trade_data), broadcast=True)
@@ -155,7 +155,7 @@ class UnixSocketManager:
                             "player": trade.buyer,
                             "side": "BUY",
                             "qty": trade.volume,
-                            "px": trade.price,
+                            "px": trade.price / 10**precision,
                             "agg": "Y" if trade.passive_side == 0 else "N",
                             "counterparty": trade.seller
                         }
@@ -165,7 +165,7 @@ class UnixSocketManager:
                             "player": trade.seller,
                             "side": "SELL",
                             "qty": trade.volume,
-                            "px": trade.price,
+                            "px": trade.price / 10**precision,
                             "agg": "N" if trade.passive_side == 0 else "Y",
                             "counterparty": trade.buyer
                         }
