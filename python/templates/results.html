@@ -1,6 +1,19 @@
 <html>
 <head>
     <title>Trading Game Results</title>
+    <style>
+
+        .wrapper {
+            display: flex;
+            justify-content: space-evenly;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+
+    </style>
     <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"
         integrity="sha384-fKnu0iswBIqkjxrhQCTZ7qlLHOFEgNkRmK2vaO/LbTZSXdJfAu6ewRBdwHPhBo/H"
         crossorigin="anonymous"></script>    
@@ -8,6 +21,8 @@
 <body>
 <p id="user">{{ user }}</p>
 <div id="marked-trades-table">
+</div>
+<div id="final-results-table">
 </div>
 
 <script>
@@ -19,7 +34,57 @@
         let rows = data['rows'];
         let columns = data['columns'];
         let grid = data['grid'];
+        let player = data['player'];
+        if (player == document.getElementById("user").innerHTML) {
+            let table = document.createElement("table");
+            let thead = document.createElement('thead');
+            let tbody = document.createElement('tbody');
+            table.appendChild(thead);
+            table.appendChild(tbody);
 
+            let hr = document.createElement('tr');
+            let hr1 = document.createElement('th');
+            let hr2 = document.createElement('th');
+            let hr3 = document.createElement('th');
+            let hr4 = document.createElement('th');
+            let hr5 = document.createElement('th');
+            
+            hr1.innerHTML = 'side';
+            hr2.innerHTML = 'qty';
+            hr3.innerHTML = 'px';
+            hr4.innerHTML = 'counterparty';
+            hr5.innerHTML = 'pnl';
+
+            hr.append(hr1);
+            hr.append(hr2);
+            hr.append(hr3);
+            hr.append(hr4);
+            hr.append(hr5);
+            thead.append(hr);
+
+            for (const row of rows) {
+                let tr = document.createElement('tr');
+                for  (const [column, value] of Object.entries(grid[row])) {
+                    let td = document.createElement('td');
+                    td.innerHTML = value;
+                    tbody.appendChild(td);
+                }
+                tbody.appendChild(tr);
+            }
+
+            let marked_trades_table = document.getElementById('marked-trades-table');
+            marked_trades_table.removeChild(marked_trades_table.firstChild);
+            marked_trades_table.appendChild(table);
+        }
+    });
+
+    socket.on("final_results", (msg) => {
+        console.log("final_results, msg=", msg);
+        let data = JSON.parse(msg);
+        let rows = data['rows'];
+        let columns = data['columns'];
+        let grid = data['grid'];
+        
         let table = document.createElement("table");
         let thead = document.createElement('thead');
         let tbody = document.createElement('tbody');
@@ -29,26 +94,15 @@
         let hr = document.createElement('tr');
         let hr1 = document.createElement('th');
         let hr2 = document.createElement('th');
-        let hr3 = document.createElement('th');
-        let hr4 = document.createElement('th');
-        let hr5 = document.createElement('th');
-        
-        hr1.innerHTML = 'passive user';
-        hr2.innerHTML = 'passive side';
-        hr3.innerHTML = 'trade qty';
-        hr4.innerHTML = 'trade px';
-        hr5.innerHTML = 'trade pnl';
-
+        hr1.innerHTML = 'player';
+        hr2.innerHTML = 'pnl';
         hr.append(hr1);
         hr.append(hr2);
-        hr.append(hr3);
-        hr.append(hr4);
-        hr.append(hr5);
         thead.append(hr);
 
         for (const row of rows) {
             let tr = document.createElement('tr');
-            for  (const [column, value] of Object.entries(grid[row])) {
+            for (const [column, value] of Object.entries(grid[row])) {
                 let td = document.createElement('td');
                 td.innerHTML = value;
                 tbody.appendChild(td);
@@ -56,9 +110,9 @@
             tbody.appendChild(tr);
         }
 
-        let marked_trades_table = document.getElementById('marked-trades-table');
-        marked_trades_table.removeChild(marked_trades_table.firstChild);
-        marked_trades_table.appendChild(table);
+        let final_results_table = document.getElementById('final-results-table');
+        final_results_table.removeChild(final_results_table.firstChild);
+        final_results_table.appendChild(table);
     });
 
 </script>

@@ -118,8 +118,18 @@ class UnixSocketManager:
                         instrument = trade.instrument
                         iid = instrument.id
                         precision = instrument.precision
+
+                        passive_user = trade.buyer if trade.passive_side == 0 else trade.seller
+                        agg_user = trade.seller if trade.passive_side == 0 else trade.buyer
+                        agg_side = "SELL" if trade.passive_side == 0 else "BUY"
+
                         print(f"TRADE: {iid=}, {precision=}, {trade.volume=}, {trade.price=}, {trade.passive_account=}, {trade.passive_side=}")
-                        self.gm.current_market_game.process_trade(trade.passive_account, trade.price, trade.volume, trade.passive_side)
+                        self.gm.current_market_game.process_trade(
+                            trade.passive_account, 
+                            trade.price, 
+                            trade.volume, 
+                            trade.passive_side,
+                            agg_user)
 
                         # print(f"iterating over {self.gm.players=}")
                         # for player in self.gm.players:
@@ -130,9 +140,7 @@ class UnixSocketManager:
                         j_top = self.gm.get_top_json()
                         await self.sio.emit("top", j_top, broadcast=True)
 
-                        passive_user = trade.buyer if trade.passive_side == 0 else trade.seller
-                        agg_user = trade.seller if trade.passive_side == 0 else trade.buyer
-                        agg_side = "SELL" if trade.passive_side == 0 else "BUY"
+
 
                         public_trade_data = {
                             "agg_user": agg_user,

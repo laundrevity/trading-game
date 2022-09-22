@@ -16,7 +16,7 @@ public:
     bool cancel_order(size_t book_id, size_t order_id);
 
 
-    std::map<std::string, double> get_nlv_map();
+    std::map<std::string, double> get_nlv_map(size_t instrument_id);
 
     std::map<size_t, std::shared_ptr<OrderBook>> get_book_map() const {
         return book_map;

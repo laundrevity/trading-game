@@ -44,34 +44,78 @@ class MarketGame:
     async def resolve(self):
         payload = {}
         await self.sio.emit("end_market_game", json.dumps({}), broadcast=True)
-
-        rows = [t['id'] for t in self.trades]
-        columns = ['passive user', 'passive side', 'trade qty', 'trade px', 'trade pnl']
-        grid = {}
-        settle_px = self.settlement / (10**self.precision)
-        for t in self.trades:
-            if t['passive_side'] == "BUY":
-                pnl = t['qty'] * (settle_px - t['price'])
-            else:
-                pnl = t['qty'] * (t['price'] - settle_px)
-
-            grid[t['id']] = {
-                'passive user': t['passive_player'],
-                'passive side': t['passive_side'],
-                'trade qty': t['qty'],
-                'trade px': t['price'],
-                'trade pnl': pnl
-            }
-        
-        payload = {
-            'rows': rows,
-            'columns': columns,
-            'grid': grid
-        }
-
         await asyncio.sleep(1)
 
-        await self.sio.emit('results', json.dumps(payload), broadcast=True)
+        player_pnls = {p: 0 for p in self.players}
+        for player in self.players:
+            trades = [t for t in self.trades if t['passive_player'] == player or t['agg_player'] == player]
+            rows = [t['id'] for t in trades]
+            columns = ['side', 'qty', 'px', 'counterparty', 'pnl']
+            grid = {}
+            settle_px = self.settlement / (10**self.precision)
+            for t in trades:
+                if t['passive_side'] == "BUY":
+                    if t['passive_player'] == player:
+                        pnl = t['qty'] * (settle_px - t['price'])
+                        grid[t['id']] = {
+                            'side': 'BUY',
+                            'qty': t['qty'],
+                            'px': t['price'],
+                            'counterparty': t['agg_player'],
+                            'pnl': pnl
+                        }
+                    else:
+                        pnl = t['qty'] * (t['price'] - settle_px)
+                        grid[t['id']] = {
+                            'side': 'SELL',
+                            'qty': t['qty'],
+                            'px': t['price'],
+                            'counterparty': t['passive_player'],
+                            'pnl': pnl
+                        }
+                else:
+                    if t['passive_player'] == player:
+                        pnl = t['qty'] * (t['price'] - settle_px)
+                        grid[t['id']] = {
+                            'side': 'SELL',
+                            'qty': t['qty'],
+                            'px': t['price'],
+                            'counterparty': t['agg_player'],
+                            'pnl': pnl
+                        }
+                    else:
+                        pnl = t['qty'] * (settle_px - t['price'])
+                        grid[t['id']] = {
+                            'side': 'BUY',
+                            'qty': t['qty'],
+                            'px': t['price'],
+                            'counterparty': t['passive_player'],
+                            'pnl': pnl
+                        }
+                player_pnls[player] += pnl
+                payload = {
+                    'player': player,
+                    'rows': rows,
+                    'columns': columns,
+                    'grid': grid
+                }
+
+            await self.sio.emit('results', json.dumps(payload), broadcast=True)
+        
+        final_columns = ['player', 'pnl']
+        final_rows = self.players
+        final_grid = {}
+
+        for player in self.players:
+            final_grid[player] = {'player': player, 'pnl': player_pnls[player]}
+
+        final_payload = {
+            'rows': final_rows,
+            'columns': final_columns,
+            'grid': final_grid
+        }
+
+        await self.sio.emit('final_results', json.dumps(final_payload), broadcast=True)
 
     def get_levels_grid(self, player):
         # first populate rows based on min/max price in book
@@ -190,7 +234,7 @@ class MarketGame:
 
         print(f"after adding order, {self.book=}", flush=True)
 
-    def process_trade(self, passive_player, price, qty, passive_side):
+    def process_trade(self, passive_player, price, qty, passive_side, agg_player):
         px_str = f'{(price/(10**self.precision)):.2f}'
         if passive_side == 0:
             qty_left = qty
@@ -216,7 +260,8 @@ class MarketGame:
                 "passive_side": "BUY",
                 "qty": qty,
                 "price": price/(10**self.precision),
-                "id": self.trade_id
+                "id": self.trade_id,
+                "agg_player": agg_player
             })
 
         else:
@@ -243,7 +288,8 @@ class MarketGame:
                 "passive_side": "SELL",
                 "qty": qty,
                 "price": price/(10**self.precision),
-                "id": self.trade_id
+                "id": self.trade_id,
+                "agg_player": agg_player
             })
 
         self.trade_id += 1
