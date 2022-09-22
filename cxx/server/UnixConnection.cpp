@@ -83,12 +83,12 @@ void UnixConnection::handle_read(const boost::system::error_code& error, size_t 
 
                                     if (exchange->process_order(order)) {
                                         std::cout << "successfully processed order: ";
-                                        std::cout << "user=" << account_name << ", px=" << Price(insert_message.price());
+                                        std::cout << "user=" << account_name << ", px=" << Price(insert_message.price(), precision);
                                         std::cout << ", volume=" << insert_message.volume() << ", side=" << int(order->get_side()) << std::endl;
                                         // send INSERT_ORDER_REPLY with error=0
                                     } else {
                                         std::cout << "failed to process order: ";
-                                        std::cout << "user=" << account_name << ", px=" << Price(insert_message.price());
+                                        std::cout << "user=" << account_name << ", px=" << Price(insert_message.price(), precision);
                                         std::cout << ", volume=" << insert_message.volume() << ", side=" << int(order->get_side()) << std::endl;                                        
                                         // send INSERT_ORDER_REPLY with error=1
                                     }
@@ -217,6 +217,36 @@ void UnixConnection::handle_read(const boost::system::error_code& error, size_t 
                             std::string reply_full_string(header_bytes, 8);
                             reply_full_string += reply_string;
                             write(reply_full_string);
+
+                            break;
+                        }
+
+                        case ProtoCommon::CANCEL_USER_SIDE: {
+                            std::cout << "CANCEL_USER_SIDE" << std::endl;
+
+                            auto cancel = msg.cancel_user_side();
+                            auto instrument = cancel.instrument();
+                            size_t instrument_id = instrument.id();
+                            std::string account_name = cancel.account_name();
+                            auto side = (cancel.side() == ProtoCommon::BUY ? Side::BUY : Side::SELL);
+
+                            auto book_opt = exchange->get_book(instrument_id);
+                            if (book_opt) {
+                                auto account_opt = exchange->get_account(account_name);
+                                if (account_opt) {
+                                    auto order_map = book_opt.value()->get_order_map();
+                                    for (auto& [oid, order]: order_map) {
+                                        if (order->get_account_name() == account_name) {
+                                            if (order->get_side() == side) {
+                                                std::cout << "canceling oid=" << oid << ", px=" << order->get_price() << std::endl;
+                                                book_opt.value()->cancel_order(oid);
+                                                notify_level_update(instrument_id, account_name, 0, order->get_price(), side);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
 
                             break;
                         }

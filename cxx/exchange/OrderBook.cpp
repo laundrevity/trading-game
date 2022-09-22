@@ -29,9 +29,13 @@ bool OrderBook::cancel_order(size_t order_id) {
             if (order->get_price() == best_bid) {
                 // check if it was ALONE in the top level
                 if (level->empty()) {
-                    bid_levels.erase(best_bid.get_int());
                     recalculate_top_bid();
                 }
+            }
+
+            // remove empty price levels
+            if (level->empty()) {
+                bid_levels.erase(order_px_int);
             }
         }
         return result;
@@ -48,9 +52,13 @@ bool OrderBook::cancel_order(size_t order_id) {
             // check if this order was in the top level
             if (order->get_price() == best_ask) {
                 if (level->empty()) {
-                    ask_levels.erase(best_ask.get_int());
                     recalculate_top_ask();
                 }
+            }
+
+            // remove empty price levels
+            if (level->empty()) {
+                ask_levels.erase(order_px_int);
             }
         }
         return result;

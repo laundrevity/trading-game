@@ -319,6 +319,15 @@ class UnixSocketManager:
             message = pb2.Message(type=['CANCEL_ORDER'], cancel_order=cancel_msg)
             await self.write_proto_message(message)
 
+    async def cancel_user_side(self, data):
+        cancel_msg = pb2.CancelUserSide(
+            instrument=self.instrument,
+            account_name=data['user'],
+            side = 0 if data['side'] == "BUY" else 1
+        )
+        message = pb2.Message(type=['CANCEL_USER_SIDE'], cancel_user_side=cancel_msg)
+        await self.write_proto_message(message)
+
     async def handle_open_side(self, data):
         open_mm = self.gm.current_market_game.open_mm
         open_bid = self.gm.current_market_game.open_bid

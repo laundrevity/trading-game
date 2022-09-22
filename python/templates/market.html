@@ -48,6 +48,12 @@ net position: <p id="position">0</p>
     <div>
         <input type="button" onclick="handle_market_sell()" value="send MKT sell">
     </div>
+    <div>
+        <input type="button" onclick="handle_cancel_bids()" value="CANCEL bids">
+    </div>
+    <div>
+        <input type="button" onclick="handle_cancel_asks()" value="CANCEL asks">
+    </div>
 </form>
 <br><br>
 <div class="wrapper">
@@ -265,6 +271,24 @@ net position: <p id="position">0</p>
             user: user_name
         };
         socket.emit("handle_market", JSON.stringify(order));
+    }
+
+    function handle_cancel_bids() {
+        let user_name = document.getElementById("user").innerHTML;
+        let payload = {
+            user: user_name,
+            side: "BUY"
+        };
+        socket.emit("handle_cancel_side", JSON.stringify(payload));
+    }
+
+    function handle_cancel_asks() {
+        let user_name = document.getElementById("user").innerHTML;
+        let payload = {
+            user: user_name,
+            side: "SELL"
+        };
+        socket.emit("handle_cancel_side", JSON.stringify(payload));
     }
 
 </script>

@@ -229,3 +229,10 @@ async def handle_market(sid, msg):
     print(f"handle_market: {msg=}", flush=True)
     data = json.loads(msg)
     await usm.insert_market_order(data)
+
+
+@sio.event
+async def handle_cancel_side(sid, msg):
+    print(f"handle_cancel_side: {msg=}", flush=True)
+    data = json.loads(msg)
+    await usm.cancel_user_side(data)

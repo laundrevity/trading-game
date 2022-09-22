@@ -11,6 +11,7 @@ enum MessageType {
     CREATE_MARKET = 6;
     CREATE_MARKET_REPLY = 7;
     POSITION_UPDATE = 8;
+    CANCEL_USER_SIDE = 9;
 }
 
 enum Side {
@@ -90,6 +91,12 @@ message PositionUpdate {
     required int64 position = 3;
 }
 
+message CancelUserSide {
+    required Instrument instrument = 1;
+    required string account_name = 2;
+    required Side side = 3;
+}
+
 message Message {
     repeated MessageType type = 1;
     optional InsertLimitOrder insert_limit_order = 2;
@@ -100,4 +107,5 @@ message Message {
     optional CreateMarket create_market = 7;
     optional CreateMarketReply create_market_reply = 8;
     optional PositionUpdate position_update = 9;
+    optional CancelUserSide cancel_user_side = 10;
 }
