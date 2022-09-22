@@ -28,7 +28,7 @@ gm = GameManager(sio)
 usm = UnixSocketManager(sio, gm)
 with open('markets.json') as f:
     markets = json.load(f)
-MARKET_INDEX = 1
+MARKET_INDEX = 2
 market_info = markets['markets'][MARKET_INDEX]
 print(f"loaded {markets=}", flush=True)
 
@@ -177,7 +177,12 @@ async def handle_bid_submission(sid, msg):
     }
     precision = market_info['precision']
     settle = int(market_info['settlement'] * 10**precision)
-    gm.initialize_market_game(settle, data['user'], data['bid'], data['ask'])
+    gm.initialize_market_game(settle, precision)
+    
+    gm.current_market_game.open_mm = data['user']
+    gm.current_market_game.open_bid = data['bid']
+    gm.current_market_game.open_ask = data['ask']
+
     await usm.create_market(0, precision, settle, gm.players)
     # redirect to trading open (all but MM)
     await sio.emit("advance_to_trading_open", json.dumps(payload), broadcast=True)
@@ -185,8 +190,6 @@ async def handle_bid_submission(sid, msg):
     await asyncio.sleep(1)
     # broadcast the initial book and prices
     await sio.emit("initial_prices", json.dumps(payload), broadcast=True)
-    for player in gm.players:
-        await sio.emit("book", gm.get_book_json(player), broadcast=True)
 
 
 @sio.event

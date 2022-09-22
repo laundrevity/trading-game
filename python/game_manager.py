@@ -29,34 +29,14 @@ class GameManager:
     def initialize_width_game(self):
         self.current_width_game = WidthGame(self.sio, self.players)
     
-    def initialize_market_game(self, settlement, open_player, open_bid, open_ask):
+    def initialize_market_game(self, settlement, precision):
         self.current_width_game = None
-        initial_qty = len(self.players) - 1
-        open_book = {
-            'bids': {f'{open_bid:.2f}': [(open_player, 0)]}, 
-            'asks': {f'{open_ask:.2f}': [(open_player, 0)]}
-        }
-        print(f"initializing market game with book={open_book}", flush=True)
+        print(f"initializing market game", flush=True)
         self.current_market_game = MarketGame(
             self.sio, 
             self.players, 
-            open_book, 
-            open_player,
-            open_bid,
-            open_ask,
-            settlement)
-
-    def get_book_json(self, player="conor"):
-        if self.current_market_game is not None:
-            rows, columns, grid = self.current_market_game.get_levels_grid(player)
-            rows = sorted(rows)[::-1]
-            payload = {
-                'rows': rows,
-                'columns': columns,
-                'grid': grid,
-                'player': player
-            }
-            return json.dumps(payload)
+            settlement,
+            precision)
 
     def get_top_json(self):
         if self.current_market_game is not None:

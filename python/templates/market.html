@@ -56,6 +56,7 @@ net position: <p id="position">0</p>
 <div id="ask-grid">
 </div>
 <table id="public-trades">
+<caption>public trades</caption>
 <thead>
     <tr>
         <td>agg user</td>
@@ -69,6 +70,7 @@ net position: <p id="position">0</p>
 </tbody>
 </table>
 <table id="private-trades">
+<caption>private trades</caption>
 <thead>
     <tr>
         <td>side</td>
@@ -107,6 +109,11 @@ net position: <p id="position">0</p>
         let bid_table = document.createElement('table');
         let bid_thead = document.createElement('thead');
         let bid_tbody = document.createElement('tbody');
+
+        let bid_caption = document.createElement('caption');
+        bid_caption.innerHTML = "open bids";
+        bid_table.appendChild(bid_caption);
+
         bid_table.appendChild(bid_thead);
         bid_table.appendChild(bid_tbody);
 
@@ -141,6 +148,11 @@ net position: <p id="position">0</p>
         let ask_table = document.createElement('table');
         let ask_thead = document.createElement('thead');
         let ask_tbody = document.createElement('tbody');
+
+        let ask_caption = document.createElement('caption');
+        ask_caption.innerHTML = "open asks";
+        ask_table.appendChild(ask_caption);
+
         ask_table.appendChild(ask_thead);
         ask_table.appendChild(ask_tbody);
 

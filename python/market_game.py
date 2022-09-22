@@ -12,19 +12,16 @@ class MarketGameState(Enum):
     OVER = 3
 
 class MarketGame:
-    def __init__(self, sio: AsyncServer, players: List[str], book: Dict, open_player, open_bid, open_ask, settlement, precision=2):
+    def __init__(self, sio: AsyncServer, players: List[str], settlement, precision):
         self.sio = sio
         self.players = players
         self.state = MarketGameState.OPEN
-        self.book = book
+        self.book = {'bids': {}, 'asks': {}}
         self.tick_size = 1 / (10**precision)
         self.columns = ['your bid qty', 'market bid qty', 'price', 'market ask qty', 'your ask qty']
         self.unsent = True
         self.precision = precision
         self.positions = {p: 0 for p in self.players}
-        self.open_mm = open_player
-        self.open_bid = int(float(open_bid) * 10**self.precision)
-        self.open_ask = int(float(open_ask) * 10**self.precision)
         self.settlement = settlement
         self.time_left = 60
         self.seconds_per_update = 30
@@ -117,48 +114,6 @@ class MarketGame:
 
         await self.sio.emit('final_results', json.dumps(final_payload), broadcast=True)
 
-    def get_levels_grid(self, player):
-        # first populate rows based on min/max price in book
-        min_bid = min(list(self.book['bids'].keys()))
-        max_ask = max(list(self.book['asks'].keys()))
-        n_levels = int((float(max_ask) - float(min_bid))/self.tick_size) + 1
-        rows = [float(min_bid) + self.tick_size * i for i in range(n_levels)]
-        rows = [f"{r:.2f}" for r in rows]
-        grid = {}
-        
-        # populate grid based on bid/ask levels
-        for price in rows:
-            if price in self.book['bids']:
-                player_qty = sum([x[1] for x in self.book['bids'][price] if x[0] == player])
-                market_qty = sum([x[1] for x in self.book['bids'][price]])
-                grid[price] = {
-                    'your bid qty': player_qty,
-                    'market bid qty': market_qty,
-                    'price': price,
-                    'market ask qty': 0,
-                    'your ask qty': 0
-                }
-            elif price in self.book['asks']:
-                player_qty = sum([x[1] for x in self.book['asks'][price] if x[0] == player])
-                market_qty = sum(x[1] for x in self.book['asks'][price])
-                grid[price] = {
-                    'your bid qty': 0,
-                    'market bid qty': 0,
-                    'price': price,
-                    'market ask qty': market_qty,
-                    'your ask qty': player_qty
-                }
-            else:
-                grid[price] = {
-                    'your bid qty': 0,
-                    'market bid qty': 0,
-                    'price': price,
-                    'market ask qty': 0,
-                    'your ask qty': 0
-                }
-
-        return rows, self.columns, grid
-
     def get_top_data(self):
         bid_grid = {}
         ask_grid = {}
@@ -168,34 +123,36 @@ class MarketGame:
         for bid in bid_prices:
             orders = self.book['bids'][bid]
             for player, qty in orders:
-                bid_grid[local_oid] = {
-                    'player': player,
-                    'qty': qty,
-                    'px': bid
-                }
-                bid_rows.append(local_oid)
-                local_oid += 1
+                if qty > 0:
+                    bid_grid[local_oid] = {
+                        'player': player,
+                        'qty': qty,
+                        'px': bid
+                    }
+                    bid_rows.append(local_oid)
+                    local_oid += 1
                 
         ask_prices = sorted(self.book['asks'].keys(), key = lambda p: float(p))
         ask_rows = []
         for ask in ask_prices:
             orders = self.book['asks'][ask]
             for player, qty in orders:
-                ask_grid[local_oid] = {
-                    'player': player,
-                    'qty': qty,
-                    'px': ask
-                }
-                ask_rows.append(local_oid)
-                local_oid += 1
-        
+                if qty > 0:
+                    ask_grid[local_oid] = {
+                        'px': ask,
+                        'qty': qty,
+                        'player': player,
+                    }
+                    ask_rows.append(local_oid)
+                    local_oid += 1
+            
         bid_columns = ['player', 'qty', 'px']
         ask_columns = ['px', 'qty', 'player']
         return bid_rows, bid_columns, bid_grid, ask_rows, ask_columns, ask_grid
 
     def add_order(self, player, price, qty, side):
         print(f"adding order: {player=}, {price=}, {qty=}, {side=}", flush=True)
-        px_str = f'{(price/(10**self.precision)):.2f}'
+        px_str = f'{(price/(10**self.precision)):.{self.precision}f}'
         if side == 0:
             if qty == 0:
                 # cancel all of the orders for this guy
@@ -235,7 +192,7 @@ class MarketGame:
         print(f"after adding order, {self.book=}", flush=True)
 
     def process_trade(self, passive_player, price, qty, passive_side, agg_player):
-        px_str = f'{(price/(10**self.precision)):.2f}'
+        px_str = f'{(price/(10**self.precision)):.{self.precision}f}'
         if passive_side == 0:
             qty_left = qty
             indices_to_remove = []

@@ -31,6 +31,10 @@ current minimum width: <p id="best_width"></p> - <p id="best_name"></p>
         <label for="bid">bid: </label>
         <input type="text" name="bid" id="bid-input" required>
     </div>
+    <div class="ask-wrapper">
+        <div>ask: </div>
+        <div id="ask-cell"></div>
+    </div>
     <div class="bid-form">
         <input type="button" onclick="handle_bid_submission()" value="send">
     </div>
@@ -121,6 +125,14 @@ current minimum width: <p id="best_width"></p> - <p id="best_name"></p>
             event.preventDefault();
             handle_width_update();
         }
+    });
+
+    let bid_input = document.getElementById("bid-input");
+    bid_input.addEventListener("input", function(event) {
+        let bid = bid_input.value;
+        let width = document.getElementById("best_width").innerHTML;
+        let ask_cell = document.getElementById("ask-cell");
+        ask_cell.innerHTML = parseFloat(bid) + parseFloat(width);
     });
 
 </script>
