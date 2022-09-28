@@ -198,7 +198,7 @@ async def handle_open_side(sid, msg):
     data = json.loads(msg)
 
     # send both MM and this crossing order to matcher, to simulate market-at-open orders
-    await sio.emit("advance_to_market", json.dumps({}))
+    await sio.emit("advance_to_market", json.dumps({'user': data['user']}), broadcast=True)
     await asyncio.sleep(1)
     await usm.handle_open_side(data)
 

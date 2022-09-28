@@ -30,7 +30,11 @@
     });
 
     socket.on("advance_to_market", (msg) => {
-        window.location.href = "{{ url_for('market') }}";
+        let user_name = document.getElementById("user").innerHTML;
+        let d = JSON.parse(msg);
+        if (d["user"] == user_name) {
+            window.location.href = "{{ url_for('market') }}";
+        }
     });
 
     socket.on("initial_prices", (msg) => {

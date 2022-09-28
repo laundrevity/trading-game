@@ -40,7 +40,7 @@ function handle_login() {
     .then((response) => response.json())
     .then((data) => {
         if (data['success'] === 'TRUE') {
-            window.location.href = "{{url_for('index')}}";
+            window.location.href = "{{url_for('width')}}";
         } else {
             window.alert('incorrect username or password');
         }

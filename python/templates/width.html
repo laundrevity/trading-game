@@ -85,7 +85,7 @@ current minimum width: <p id="best_width"></p> - <p id="best_name"></p>
     });
 
     socket.on("advance_to_trading_open", (msg) => {
-        console.log("advance_to_trading_open");
+        console.log("advance_to_trading_open, msg=", msg);
         let d = JSON.parse(msg);
         let user_name = document.getElementById("user").innerHTML;
         if (d["initial_mm"] === user_name) {

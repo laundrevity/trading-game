@@ -41,7 +41,7 @@ class MarketGame:
     async def resolve(self):
         payload = {}
         await self.sio.emit("end_market_game", json.dumps({}), broadcast=True)
-        await asyncio.sleep(1)
+        await asyncio.sleep(5)
 
         player_pnls = {p: 0 for p in self.players}
         for player in self.players:
