@@ -180,8 +180,8 @@ async def handle_bid_submission(sid, msg):
     gm.initialize_market_game(settle, precision)
     
     gm.current_market_game.open_mm = data['user']
-    gm.current_market_game.open_bid = data['bid'] * 10**precision
-    gm.current_market_game.open_ask = data['ask'] * 10**precision
+    gm.current_market_game.open_bid = int(data['bid'] * 10**precision)
+    gm.current_market_game.open_ask = int(data['ask'] * 10**precision)
 
     await usm.create_market(0, precision, settle, gm.players)
     # redirect to trading open (all but MM)

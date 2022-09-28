@@ -330,7 +330,7 @@ class UnixSocketManager:
 
     async def handle_open_side(self, data):
         open_mm = self.gm.current_market_game.open_mm
-        open_bid = self.gm.current_market_game.open_bid
+        open_bid = self.gm.current_market_game.open_bid 
         open_ask = self.gm.current_market_game.open_ask
 
         print(f"{open_mm=}, {open_bid=}, {open_ask=}", flush=True)
