@@ -27,7 +27,7 @@ class MarketGame:
         self.seconds_per_update = 30
         self.trade_id = 0
         self.trades = []
-        self.binary = False
+        self.binary = True
         self.binary_size_per_lot = 5
 
     async def handle_tick(self):
@@ -56,7 +56,7 @@ class MarketGame:
                 if t['passive_side'] == "BUY":
                     if t['passive_player'] == player:
                         if self.binary:
-                            pnl = t['qty'] * binary_size_per_lot * (1 if settle_px > t['price'] else -1)
+                            pnl = t['qty'] * self.binary_size_per_lot * (1 if settle_px > t['price'] else -1)
                         else:
                             pnl = t['qty'] * (settle_px - t['price'])
                         grid[t['id']] = {
@@ -68,7 +68,7 @@ class MarketGame:
                         }
                     else:
                         if self.binary:
-                            pnl = t['qty'] * binary_size_per_lot * (1 if settle_px < t['price'] else -1)
+                            pnl = t['qty'] * self.binary_size_per_lot * (1 if settle_px < t['price'] else -1)
                         else:
                             pnl = t['qty'] * (t['price'] - settle_px)
                         grid[t['id']] = {
@@ -81,7 +81,7 @@ class MarketGame:
                 else:
                     if t['passive_player'] == player:
                         if self.binary:
-                            pnl = t['qty'] * binary_size_per_lot * (1 if settle_px < t['price'] else -1)
+                            pnl = t['qty'] * self.binary_size_per_lot * (1 if settle_px < t['price'] else -1)
                         else:
                             pnl = t['qty'] * (t['price'] - settle_px)
                         grid[t['id']] = {
@@ -93,7 +93,7 @@ class MarketGame:
                         }
                     else:
                         if self.binary:
-                            pnl = t['qty'] * binary_size_per_lot * (1 if settle_px > t['price'] else -1)
+                            pnl = t['qty'] * self.binary_size_per_lot * (1 if settle_px > t['price'] else -1)
                         else:
                             pnl = t['qty'] * (settle_px - t['price'])
                         grid[t['id']] = {

@@ -29,14 +29,12 @@ bool OrderBook::cancel_order(size_t order_id) {
             if (order->get_price() == best_bid) {
                 // check if it was ALONE in the top level
                 if (level->empty()) {
+                    // remove empty price level
+                    bid_levels.erase(order_px_int);
                     recalculate_top_bid();
                 }
             }
 
-            // remove empty price levels
-            if (level->empty()) {
-                bid_levels.erase(order_px_int);
-            }
         }
         return result;
     } else {
@@ -52,14 +50,12 @@ bool OrderBook::cancel_order(size_t order_id) {
             // check if this order was in the top level
             if (order->get_price() == best_ask) {
                 if (level->empty()) {
+                    // remove empty price levels
+                    ask_levels.erase(order_px_int);
                     recalculate_top_ask();
                 }
             }
 
-            // remove empty price levels
-            if (level->empty()) {
-                ask_levels.erase(order_px_int);
-            }
         }
         return result;
     }
@@ -165,8 +161,8 @@ bool OrderBook::insert_limit_order(const std::shared_ptr<Order>& order) {
                 } else {
                     if (top_ask_level->empty()) {
                         ask_levels.erase(it);
+                        orders.erase(top_ask_order->get_order_id());
                         recalculate_top_ask();
-
                         // check if order has qty left after depleting level
                         if (order->get_qty_remaining() > 0) {
                             append_order(order);
@@ -200,6 +196,7 @@ bool OrderBook::insert_limit_order(const std::shared_ptr<Order>& order) {
                 } else {
                     if (top_bid_level->empty()) {
                         bid_levels.erase(it);
+                        orders.erase(top_bid_order->get_order_id());
                         recalculate_top_bid();
 
                         // check if order has qty left after depleting level

@@ -2,6 +2,7 @@
     "markets": [
         {"description": "birds_per_person", "precision": 2, "settlement": 6.27},
         {"description": "random_int", "precision": 0, "settlement": 69},
+        {"description": "ASML market cap ($bln)", "precision":2, "settlement": 177.48},
         {"description": "8.2 - 0.1", "precision": 1, "settlement": 8.1}
     ]
 }

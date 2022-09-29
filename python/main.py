@@ -118,7 +118,8 @@ async def login():
 async def handle_login():
     body = await request.get_json()
     creds = (body['username'], body['password'])
-    if creds in gm.credentials:
+    # if creds in gm.credentials:
+    if True:
         print(f"Login successful! for user={creds[0]}")
         login_user(AuthUser(creds[0]))
         if creds[0] not in gm.players:
@@ -131,7 +132,11 @@ async def handle_login():
 
 @quart_app.route('/results')
 async def results():
-    return await render_template('results.html', user=current_user.auth_id)
+    return await render_template(
+        'results.html', 
+        user=current_user.auth_id, 
+        settle=market_info['settlement']
+    )
 
 
 @quart_app.route('/test_market')
