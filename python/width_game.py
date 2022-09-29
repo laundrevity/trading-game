@@ -24,7 +24,7 @@ class WidthGame:
         print(f"WidthGame.update, {width=}, {player=}")
         if player not in self.players:
             raise Exception("player not in WidthGame.players")
-        if self.best_width is None or width < 0.9*self.best_width:
+        if self.best_width is None or width <= 0.9*self.best_width:
             print(f"updating best_width={width} from {player}", flush=True)
             self.best_width = width
             self.best_player = player
@@ -34,6 +34,8 @@ class WidthGame:
             }
             await self.sio.emit("best_width_update", json.dumps(payload), broadcast=True)
             self.time_left = max(self.time_left, self.seconds_per_update)
+        else:
+            print(f"not updating {self.best_width=} because it is none or {width=} is too big", flush=True)
 
     async def handle_tick(self):
         if self.state != WidthGameState.OVER:

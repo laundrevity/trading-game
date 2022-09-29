@@ -27,6 +27,8 @@ class MarketGame:
         self.seconds_per_update = 30
         self.trade_id = 0
         self.trades = []
+        self.binary = False
+        self.binary_size_per_lot = 5
 
     async def handle_tick(self):
         print(f"MarketGame.handle_tick", flush=True)
@@ -53,42 +55,55 @@ class MarketGame:
             for t in trades:
                 if t['passive_side'] == "BUY":
                     if t['passive_player'] == player:
-                        pnl = t['qty'] * (settle_px - t['price'])
+                        if self.binary:
+                            pnl = t['qty'] * binary_size_per_lot * (1 if settle_px > t['price'] else -1)
+                        else:
+                            pnl = t['qty'] * (settle_px - t['price'])
                         grid[t['id']] = {
                             'side': 'BUY',
                             'qty': t['qty'],
                             'px': t['price'],
                             'counterparty': t['agg_player'],
-                            'pnl': pnl
+                            'pnl': f"{pnl:.2f}"
                         }
                     else:
-                        pnl = t['qty'] * (t['price'] - settle_px)
+                        if self.binary:
+                            pnl = t['qty'] * binary_size_per_lot * (1 if settle_px < t['price'] else -1)
+                        else:
+                            pnl = t['qty'] * (t['price'] - settle_px)
                         grid[t['id']] = {
                             'side': 'SELL',
                             'qty': t['qty'],
                             'px': t['price'],
                             'counterparty': t['passive_player'],
-                            'pnl': pnl
+                            'pnl': f"{pnl:.2f}"
                         }
                 else:
                     if t['passive_player'] == player:
-                        pnl = t['qty'] * (t['price'] - settle_px)
+                        if self.binary:
+                            pnl = t['qty'] * binary_size_per_lot * (1 if settle_px < t['price'] else -1)
+                        else:
+                            pnl = t['qty'] * (t['price'] - settle_px)
                         grid[t['id']] = {
                             'side': 'SELL',
                             'qty': t['qty'],
                             'px': t['price'],
                             'counterparty': t['agg_player'],
-                            'pnl': pnl
+                            'pnl': f"{pnl:.2f}"
                         }
                     else:
-                        pnl = t['qty'] * (settle_px - t['price'])
+                        if self.binary:
+                            pnl = t['qty'] * binary_size_per_lot * (1 if settle_px > t['price'] else -1)
+                        else:
+                            pnl = t['qty'] * (settle_px - t['price'])
                         grid[t['id']] = {
                             'side': 'BUY',
                             'qty': t['qty'],
                             'px': t['price'],
                             'counterparty': t['passive_player'],
-                            'pnl': pnl
+                            'pnl': f"{pnl:.2f}"
                         }
+                        
                 player_pnls[player] += pnl
                 payload = {
                     'player': player,
@@ -104,7 +119,7 @@ class MarketGame:
         final_grid = {}
 
         for player in self.players:
-            final_grid[player] = {'player': player, 'pnl': player_pnls[player]}
+            final_grid[player] = {'player': player, 'pnl': f"{player_pnls[player]:.2f}"}
 
         final_payload = {
             'rows': final_rows,

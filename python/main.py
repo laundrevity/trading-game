@@ -1,3 +1,4 @@
+from math import floor
 from quart import Quart, render_template, url_for, request, redirect, jsonify
 from game_manager import GameManager
 from socket_manager import UnixSocketManager
@@ -5,6 +6,7 @@ from quart_auth import (
     AuthUser, AuthManager, current_user, login_required, login_user, logout_user
 )
 from utils import load_credentials
+from math import floor
 import socketio
 import asyncio
 import datetime
@@ -87,7 +89,12 @@ async def width():
         # start a new active width game (here can pass the value desc)
         gm.initialize_width_game()
     # here is where the opening width is established, and initial bid/ask is established
-    return await render_template('width.html', user=current_user.auth_id, desc=market_info['description'])
+    return await render_template(
+        'width.html', 
+        user=current_user.auth_id, 
+        desc=market_info['description'],
+        best=gm.current_width_game.best_width
+    )
 
 
 @quart_app.route('/market')
@@ -164,6 +171,25 @@ async def handle_width_update(sid, msg):
             )
     else:
         print(f"Not updating width because gm.current_width_game is none", flush=True)
+
+
+@sio.event
+async def handle_dime(sid, msg):
+    data = json.loads(msg)
+    if gm.current_width_game is not None:
+        if gm.current_width_game.best_width is not None:
+            precision = market_info['precision']
+            tick_size = 1 / (10 ** precision)
+            floor_width = tick_size * floor(0.9 * gm.current_width_game.best_width / tick_size)
+            floor_width = float(f"{floor_width:{precision}f}")
+            await gm.current_width_game.update(
+                floor_width,
+                data['user']
+            )
+        else:
+            print(f"cannot dime with no current best", flush=True)
+    else:
+        print(f"current_width_gamei s none, from handle_dime??", flush=True)
 
 
 @sio.event

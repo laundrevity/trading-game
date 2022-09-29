@@ -8,13 +8,13 @@
 </head>
 
 <body>
-
+<p>CURRENT USER: {{ user }}</p>
 <p id="clock"></p>
 <p id="user" style="display: none">{{ user }}</p>
 <br> <br> <br>
 time remaining: <p id="time_left"></p> <br>
 quantity to trade: <p id="qty_desc">{{ desc }}</p> <br>
-current minimum width: <p id="best_width"></p> - <p id="best_name"></p>
+current minimum width: <p id="best_width">{{ best }}</p> - <p id="best_name"></p>
 
 <form action="" method="" class="width-form">
     <div class="width-form">
@@ -23,6 +23,9 @@ current minimum width: <p id="best_width"></p> - <p id="best_name"></p>
     </div>
     <div class="width-form">
         <input type="button" onclick="handle_width_update()" value="send">
+    </div>
+    <div class="width-form">
+        <input type="button" onclick="handle_dime()" value="dime">
     </div>
 </form>
 
@@ -104,6 +107,15 @@ current minimum width: <p id="best_width"></p> - <p id="best_name"></p>
             user:  user_name
         };
         socket.emit("handle_width_update", JSON.stringify(update));
+    }
+
+    function handle_dime() {
+        console.log("handle_dime");
+        let user_name = document.getElementById("user").innerHTML;
+        let update = {
+            user: user_name
+        };
+        socket.emit("handle_dime", JSON.stringify(update));
     }
 
     function handle_bid_submission() {
