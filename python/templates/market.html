@@ -90,6 +90,20 @@ net position: <p id="position">0</p>
 </tbody>
 </table>
 </div>
+<table>
+<thead>
+    <tr>
+        <td>players</td>
+    </tr>
+</thead>
+<tbody>
+    {% for player in players%}
+        <tr>
+            <td>{{ player }}</td>
+        </tr>
+    {% endfor %}
+</tbody>
+</table>
 <script>
     const socket = io();
 
