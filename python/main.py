@@ -50,6 +50,7 @@ async def tick():
         if gm.current_width_game is not None:
             await gm.current_width_game.handle_tick()
             data['width_time_left'] = gm.current_width_game.time_left
+            await sio.emit('players_update', json.dumps({'players': gm.players}), broadcast=True)
 
         if gm.current_side_game is not None:
             await gm.current_side_game.handle_tick()
@@ -97,20 +98,29 @@ async def width():
         'width.html', 
         user=current_user.auth_id, 
         desc=market_info['description'],
-        best=gm.current_width_game.best_width
+        best_width=gm.current_width_game.best_width,
+        best_player=gm.current_width_game.best_player
     )
 
 
 @quart_app.route('/market')
 @login_required
 async def market():
-    return await render_template('market.html', user=current_user.auth_id)
+    return await render_template(
+        'market.html', 
+        user=current_user.auth_id,
+        players=gm.players
+    )
 
 
 @quart_app.route('/open')
 @login_required
 async def open_route():
-    return await render_template('open.html', user=current_user.auth_id)
+    return await render_template(
+        'open.html', 
+        user=current_user.auth_id,
+        players=gm.players
+    )
 
 
 @quart_app.route('/login')

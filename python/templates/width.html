@@ -2,6 +2,12 @@
 
 <head>
     <title>Trading Game Width Phase</title>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+    </style>
     <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"
         integrity="sha384-fKnu0iswBIqkjxrhQCTZ7qlLHOFEgNkRmK2vaO/LbTZSXdJfAu6ewRBdwHPhBo/H"
         crossorigin="anonymous"></script>
@@ -14,7 +20,7 @@
 <br> <br> <br>
 time remaining: <p id="time_left"></p> <br>
 quantity to trade: <p id="qty_desc">{{ desc }}</p> <br>
-current minimum width: <p id="best_width">{{ best }}</p> - <p id="best_name"></p>
+current minimum width: <p id="best_width">{{ best_width }}</p> - <p id="best_name">{{ best_player }}</p>
 
 <form action="" method="" class="width-form">
     <div class="width-form">
@@ -41,6 +47,9 @@ current minimum width: <p id="best_width">{{ best }}</p> - <p id="best_name"></p
     <div class="bid-form">
         <input type="button" onclick="handle_bid_submission()" value="send">
     </div>
+</div>
+
+<div id="players-grid">
 </div>
 
 <script>
@@ -91,6 +100,34 @@ current minimum width: <p id="best_width">{{ best }}</p> - <p id="best_name"></p
         console.log("advance_to_trading_open, msg=", msg);
         let d = JSON.parse(msg);
         window.location.href = "{{ url_for('open_route') }}"
+    });
+
+    socket.on("players_update", (msg) => {
+        console.log("players_update, msg=", msg);
+        let data = JSON.parse(msg);
+        let table = document.createElement('table');
+        let thead = document.createElement('thead');
+        let tbody = document.createElement('tbody');
+        table.appendChild(thead);
+        table.appendChild(tbody);
+        let players = data['players'];
+        
+        hr = document.createElement('tr');
+        th = document.createElement('th');
+        th.innerHTML = 'players';
+        hr.append(th);
+        thead.append(hr);
+
+        for (var i=0; i < players.length; i++) {
+            let tr = document.createElement('tr');
+            let td = document.createElement('td');
+            td.innerHTML = players[i];
+            tbody.appendChild(td);
+            tbody.append(tr);
+        }
+        let xdiv = document.getElementById('players-grid');
+        xdiv.removeChild(xdiv.firstChild);
+        xdiv.appendChild(table);
     });
 
     function handle_width_update() {

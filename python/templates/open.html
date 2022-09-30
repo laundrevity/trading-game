@@ -21,6 +21,14 @@ time remaining:
     </div>
 </form>
 
+<tbody>
+    {% for player in players%}
+        <tr>
+            <td>{{ player }}</td>
+        </tr>
+    {% endfor %}
+</tbody>
+
 <script>
     const socket = io();
 
