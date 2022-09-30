@@ -51,6 +51,10 @@ async def tick():
             await gm.current_width_game.handle_tick()
             data['width_time_left'] = gm.current_width_game.time_left
 
+        if gm.current_side_game is not None:
+            await gm.current_side_game.handle_tick()
+            data['side_time_left'] = gm.current_side_game.time_left
+
         if gm.current_market_game is not None:
             await gm.current_market_game.handle_tick()
             data['market_time_left'] = gm.current_market_game.time_left
@@ -151,9 +155,6 @@ async def test_market():
         }
         await usm.create_market(0, 2, 627, ["conor", "ronoc"])
 
-    # for player in gm.players:
-    #     await sio.emit("book", gm.get_book_json(player), broadcast=True)
-    
     return await render_template('market.html', user=current_user.auth_id)
 
 
@@ -201,25 +202,19 @@ async def handle_dime(sid, msg):
 async def handle_bid_submission(sid, msg):
     print(f"handle_bid_submission for {msg=} from {sid=}", flush=True)
     data = json.loads(msg)
+    precision = market_info['precision']
+    rounded_ask = float(f"{data['ask']:{precision}f}")
     payload = {
         'initial_bid': data['bid'],
-        'initial_ask': data['ask'],
+        'initial_ask': rounded_ask,
         'initial_mm': data['user']
     }
-    precision = market_info['precision']
-    settle = int(market_info['settlement'] * 10**precision)
-    gm.initialize_market_game(settle, precision)
-    
-    gm.current_market_game.open_mm = data['user']
-    gm.current_market_game.open_bid = int(data['bid'] * 10**precision)
-    gm.current_market_game.open_ask = int(data['ask'] * 10**precision)
 
-    await usm.create_market(0, precision, settle, gm.players)
-    # redirect to trading open (all but MM)
+    gm.initialize_side_game(data['user'], data['bid'], rounded_ask)
     await sio.emit("advance_to_trading_open", json.dumps(payload), broadcast=True)
     # wait a second for folks to get redirected
     await asyncio.sleep(1)
-    # broadcast the initial book and prices
+    # broadcast the initial prices
     await sio.emit("initial_prices", json.dumps(payload), broadcast=True)
 
 
@@ -228,10 +223,68 @@ async def handle_open_side(sid, msg):
     print(f"handle_open_side for {msg=} from {sid=}", flush=True)
     data = json.loads(msg)
 
-    # send both MM and this crossing order to matcher, to simulate market-at-open orders
-    await sio.emit("advance_to_market", json.dumps({'user': data['user']}), broadcast=True)
-    await asyncio.sleep(1)
-    await usm.handle_open_side(data)
+    if gm.current_side_game is not None:
+        await gm.current_side_game.handle_update(data)
+
+        payload = {'user': data['user']}
+        await sio.emit('hide_side_form', json.dumps(payload), broadcast=True)
+
+
+@sio.event
+async def handle_side_results(sid, msg):
+    print(f"side_results for {msg=}", flush=True)
+    data = json.loads(msg)
+
+    if gm.current_market_game is None:
+        # alrighty, first initialize the market
+        precision = market_info['precision']
+        settle = int(market_info['settlement'] * 10**precision)
+        gm.initialize_market_game(settle, precision)
+        await usm.create_market(0, precision, settle, gm.players)
+        await sio.emit('advance_to_market', json.dumps({}))
+        await asyncio.sleep(1)
+
+        # now let us send the correct orders
+        if gm.current_side_game is not None:
+            bid_px = gm.current_side_game.bid 
+            ask_px = gm.current_side_game.ask
+            mm = gm.current_side_game.mm
+
+            print(f"iterating over {data['buyers']=}", flush=True)
+            for buyer in data['buyers']:
+                print(f"inserting sell order for {mm=}", flush=True)
+                await usm.insert_limit_order({
+                    'side': 'SELL',
+                    'qty': 1,
+                    'user': mm,
+                    'px': ask_px
+                })
+                print(f"inserting limit order for {buyer=}", flush=True)
+                await usm.insert_limit_order({
+                    'side': 'BUY',
+                    'qty': 1,
+                    'user': buyer,
+                    'px': ask_px
+                })
+                await asyncio.sleep(0.1)
+
+            print(f"iterating over {data['sellers']=}", flush=True)
+            for seller in data['sellers']:
+                print(f"inserting buy order for {mm=}", flush=True)
+                await usm.insert_limit_order({
+                    'side': 'BUY',
+                    'qty': 1,
+                    'user': mm,
+                    'px': bid_px
+                })
+                print(f"inserting limit order for {seller=}", flush=True)
+                await usm.insert_limit_order({
+                    'side': 'SELL',
+                    'qty': 1,
+                    'user': seller,
+                    'px': bid_px
+                })
+                await asyncio.sleep(0.1)
 
 
 @sio.event

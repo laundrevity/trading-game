@@ -6,11 +6,13 @@
         crossorigin="anonymous"></script>
 </head>        
 <body>
-<p id="clock"></p>
+<p>CURRENT USER: {{ user }}</p>
 <p id="user" style="display: none">{{ user }}</p>
+time remaining:
+<p id="time_left"></p>
 <br><br><br>
 
-<form action="" method="" class="side-form">
+<form id="side-submission" action="" method="" class="side-form" style="display: none;">
     <div class="side-form">
         <input id="buy_button" type="button" onclick="handle_buy_side()" value="buy">
     </div>
@@ -24,27 +26,46 @@
 
     socket.on("tick", (msg) => {
         console.log("session id: ", socket.io.engine.id);
-        let d = JSON.parse(msg);
-        let element = document.getElementById('clock');
-        element.innerHTML = d['dt'];
+        let data = JSON.parse(msg);
+        if ("side_time_left" in data) {
+            let time_ele = document.getElementById("time_left");
+            time_ele.innerHTML = data["side_time_left"];
+        }
     });
 
     socket.on("advance_to_market", (msg) => {
-        let user_name = document.getElementById("user").innerHTML;
-        let d = JSON.parse(msg);
-        if (d["user"] == user_name) {
-            window.location.href = "{{ url_for('market') }}";
-        }
+        window.location.href = "{{ url_for('market') }}";
     });
 
     socket.on("initial_prices", (msg) => {
         console.log("initial_prices");
         let d = JSON.parse(msg);
         let buy_button = document.getElementById('buy_button');
-        buy_button.value = "buy @ " + d['initial_ask']
+        buy_button.value = "buy @ " + d['initial_ask'];
         let sell_button = document.getElementById('sell_button');
-        sell_button.value = "sell @ " + d['initial_bid']
+        sell_button.value = "sell @ " + d['initial_bid'];
+        let user_name = document.getElementById("user").innerHTML;
+        if (d["initial_mm"] !== user_name) {
+            let element = document.getElementById("side-submission");
+            element.style.display = 'block';
+        }
     });
+
+    socket.on("hide_side_form", (msg) => {
+        console.log("hide_side_form");
+        let d = JSON.parse(msg);
+        let user_name = document.getElementById("user").innerHTML;
+        if (d["user"] == user_name) {
+            let element = document.getElementById("side-submission");
+            element.style.display = 'none';
+        }
+    });
+
+    socket.on("side_results", (msg) => {
+        console.log("emitting handle_side_results, msg=", msg);
+        socket.emit("handle_side_results", msg);
+        window.location.href = "{{ url_for('market') }}";
+    })
 
     function handle_buy_side() {
         let user_name = document.getElementById("user").innerHTML;

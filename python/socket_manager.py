@@ -104,14 +104,6 @@ class UnixSocketManager:
                     case "CREATE_MARKET_REPLY":
                         print(f"CREATE_MARKET_REPLY", flush=True)
                         # let gm know that it was created successfully
-                        if self.gm.current_market_game is not None:
-                            # wait a second to allow the page to load in the browser
-                            # await asyncio.sleep(1)
-                            print(f"emitting book", flush=True)
-                            # await self.sio.emit("book", self.gm.get_book_json(), broadcast=True)
-
-                        else:
-                            print(f"not emitting book cuz self.gm.current_market_game is None", flush=True)
 
                     case "TRADE":
                         trade = pb_msg.trade
@@ -257,6 +249,7 @@ class UnixSocketManager:
             await self.write_proto_message(message)
     
     async def insert_limit_order(self, data):
+        print(f"insert_limit_order w/ {data=}", flush=True)
         order_px_int = int(float(data['px']) * 10**self.precision)
         if data['side'] == 'BUY':
             insert_msg = pb2.InsertLimitOrder(
